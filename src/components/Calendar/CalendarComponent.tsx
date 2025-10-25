@@ -1,12 +1,13 @@
 /**
  * Calendar Component with Date Selection
- * Displays a calendar with entry indicators and date selection
+ * Displays a calendar with entry indicators and day tag indicators
  */
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import { Calendar as RNCalendar, DateData, MarkedDates } from 'react-native-calendars';
 import { CombinedEntry } from '@/types/entry';
+import { useDayTagStore } from '../../stores/dayTagStore';
 
 export interface CalendarComponentProps {
   selectedDate: string;
@@ -21,7 +22,17 @@ export const CalendarComponent: React.FC<CalendarComponentProps> = ({
   onDateSelect,
   testID = 'calendar-component',
 }) => {
-  // Create marked dates object from entries
+  const { taggedDatesInMonth, loadTaggedDatesInMonth } = useDayTagStore();
+
+  // Load tagged dates for current month when component mounts or month changes
+  useEffect(() => {
+    const date = new Date(selectedDate || new Date());
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1; // getMonth() returns 0-11
+    loadTaggedDatesInMonth(year, month);
+  }, [selectedDate, loadTaggedDatesInMonth]);
+
+  // Create marked dates object from entries and tags
   const markedDates = useMemo<MarkedDates>(() => {
     const marked: MarkedDates = {};
 
@@ -31,14 +42,30 @@ export const CalendarComponent: React.FC<CalendarComponentProps> = ({
         acc[entry.date] = [];
       }
       acc[entry.date].push(entry);
-      return {};
+      return acc;
     }, {} as Record<string, CombinedEntry[]>);
 
-    // Mark dates with entries
-    Object.keys(entriesByDate).forEach(date => {
+    // Mark dates with entries and/or tags
+    const allDates = new Set([
+      ...Object.keys(entriesByDate),
+      ...Object.keys(taggedDatesInMonth),
+    ]);
+
+    allDates.forEach((date) => {
+      const hasEntries = !!entriesByDate[date];
+      const hasTags = !!taggedDatesInMonth[date];
+      const dots = [];
+
+      if (hasEntries) {
+        dots.push({ key: 'entries', color: '#007AFF' });
+      }
+      if (hasTags) {
+        dots.push({ key: 'tags', color: '#FF9500' });
+      }
+
       marked[date] = {
         marked: true,
-        dotColor: '#007AFF',
+        dots: dots,
       };
     });
 
@@ -53,7 +80,7 @@ export const CalendarComponent: React.FC<CalendarComponentProps> = ({
     }
 
     return marked;
-  }, [entries, selectedDate]);
+  }, [entries, taggedDatesInMonth, selectedDate]);
 
   const handleDayPress = (day: DateData) => {
     onDateSelect(day.dateString);
@@ -102,6 +129,10 @@ export const CalendarComponent: React.FC<CalendarComponentProps> = ({
         <View style={styles.legendItem}>
           <View style={[styles.legendDot, { backgroundColor: '#007AFF' }]} />
           <Text style={styles.legendText}>Has entries</Text>
+        </View>
+        <View style={styles.legendItem}>
+          <View style={[styles.legendDot, { backgroundColor: '#FF9500' }]} />
+          <Text style={styles.legendText}>Has tags</Text>
         </View>
       </View>
     </View>

@@ -1,16 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useEntryStore, useEntryOperations } from '@/stores/entryStore';
 import { Button } from '@/components/UI/Button';
 import { CalendarComponent } from '@/components/Calendar/CalendarComponent';
+import { DayTagManager } from '@/components/DayTags/DayTagManager';
 import { formatDateShort } from '@/utils/dateUtils';
 
 export default function CalendarScreen() {
   const router = useRouter();
   const { selectedDate, entries, isLoading, error, setSelectedDate } = useEntryStore();
   const { createTodaysBowelMovement } = useEntryOperations();
+  const [tagManagerVisible, setTagManagerVisible] = useState(false);
 
   const handleQuickBowelMovement = async () => {
     try {
@@ -47,6 +49,16 @@ export default function CalendarScreen() {
 
         <View style={styles.quickActions}>
           <Text style={styles.sectionTitle}>Quick Actions</Text>
+
+          <Button
+            title="Manage Day Tags"
+            onPress={() => setTagManagerVisible(true)}
+            variant="outline"
+            style={styles.button}
+            testID="manage-tags-button"
+            accessibilityLabel="Manage tags for selected date"
+            accessibilityHint="Opens modal to add or remove tags for this day"
+          />
 
           <Button
             title="Quick Bowel Movement"
@@ -106,6 +118,13 @@ export default function CalendarScreen() {
           )}
         </View>
       </ScrollView>
+
+      {/* Day Tag Manager Modal */}
+      <DayTagManager
+        date={selectedDate}
+        visible={tagManagerVisible}
+        onClose={() => setTagManagerVisible(false)}
+      />
     </SafeAreaView>
   );
 }

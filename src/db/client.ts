@@ -8,4 +8,18 @@ const expo = openDatabaseSync("crohns_tracker.db", {
 });
 
 // Create Drizzle instance
-export default drizzle(expo, { schema });
+const db = drizzle(expo, { schema });
+
+export default db;
+
+// Re-export schema tables for easy access
+export {
+  entries,
+  bowelMovements,
+  notes,
+  dayTags,
+  dayTagAssociations,
+} from "./schema";
+
+// Re-export database instance as named export
+export { db };
