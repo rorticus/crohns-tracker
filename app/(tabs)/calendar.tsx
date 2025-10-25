@@ -1,10 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useEntryStore, useEntryOperations } from '@/stores/entryStore';
 import { Button } from '@/components/UI/Button';
 import { CalendarComponent } from '@/components/Calendar/CalendarComponent';
+import { formatDateShort } from '@/utils/dateUtils';
 
 export default function CalendarScreen() {
   const router = useRouter();
@@ -15,9 +16,13 @@ export default function CalendarScreen() {
     try {
       await createTodaysBowelMovement(4, 2, 'Quick entry from calendar');
       Alert.alert('Success', 'Bowel movement logged successfully!');
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'Failed to log bowel movement');
     }
+  };
+
+  const handleEntryPress = (entryId: number) => {
+    router.push(`/entry/${entryId}`);
   };
 
   const todaysEntries = entries.filter(entry => entry.date === selectedDate);
@@ -64,24 +69,39 @@ export default function CalendarScreen() {
         </View>
 
         <View style={styles.recentEntries}>
-          <Text style={styles.sectionTitle}>Entries for {selectedDate}</Text>
+          <Text style={styles.sectionTitle}>Entries for {formatDateShort(selectedDate)}</Text>
           {todaysEntries.length === 0 ? (
             <Text style={styles.emptyText} accessibilityLabel="No entries for selected date">
               No entries for this date
             </Text>
           ) : (
             todaysEntries.map(entry => (
-              <View key={entry.id} style={styles.entryItem} accessible={true} accessibilityLabel={`Entry at ${entry.time}`}>
+              <TouchableOpacity
+                key={entry.id}
+                style={styles.entryItem}
+                onPress={() => handleEntryPress(entry.id)}
+                accessible={true}
+                accessibilityRole="button"
+                accessibilityLabel={`Entry at ${entry.time}, tap to edit`}
+                accessibilityHint="Opens edit screen for this entry"
+              >
                 <Text style={styles.entryTime}>{entry.time}</Text>
-                <Text style={styles.entryType}>
-                  {entry.type === 'bowel_movement' ? '🚽' : '📝'} {entry.type}
-                </Text>
-                {entry.type === 'bowel_movement' && (
-                  <Text style={styles.entryDetails}>
-                    Bristol: {entry.bowelMovement.consistency}, Urgency: {entry.bowelMovement.urgency}
+                <View style={styles.entryContent}>
+                  <Text style={styles.entryIcon}>
+                    {entry.type === 'bowel_movement' ? '🚽' : '📝'}
                   </Text>
-                )}
-              </View>
+                  {entry.type === 'bowel_movement' && entry.bowelMovement && (
+                    <Text style={styles.entryDetails}>
+                      Bristol: {entry.bowelMovement.consistency}, Urgency: {entry.bowelMovement.urgency}
+                    </Text>
+                  )}
+                  {entry.type === 'note' && entry.note && (
+                    <Text style={styles.entryDetails} numberOfLines={1}>
+                      {entry.note.content}
+                    </Text>
+                  )}
+                </View>
+              </TouchableOpacity>
             ))
           )}
         </View>
@@ -137,21 +157,33 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     marginBottom: 8,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
   },
   entryTime: {
     fontSize: 14,
     fontWeight: '600',
     color: '#007AFF',
+    marginBottom: 4,
   },
-  entryType: {
-    fontSize: 16,
-    color: '#1C1C1E',
-    marginTop: 4,
+  entryContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  entryIcon: {
+    fontSize: 24,
   },
   entryDetails: {
     fontSize: 14,
-    color: '#8E8E93',
-    marginTop: 2,
+    color: '#1C1C1E',
+    flex: 1,
   },
   errorText: {
     color: '#FF3B30',

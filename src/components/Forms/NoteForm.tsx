@@ -13,39 +13,29 @@ import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { useEntryStore } from '@/stores/entryStore';
 import { Button } from '@/components/UI/Button';
-import { CreateBowelMovementInput } from '@/types/entry';
-import { validateBowelMovementInput } from '@/services/validationService';
+import { CreateNoteInput } from '@/types/entry';
+import { validateNoteInput } from '@/services/validationService';
 
-interface BowelMovementFormProps {
-  initialData?: Partial<CreateBowelMovementInput>;
-  onSubmit?: (data: CreateBowelMovementInput) => Promise<void>;
+interface NoteFormProps {
+  initialData?: Partial<CreateNoteInput>;
+  onSubmit?: (data: CreateNoteInput) => Promise<void>;
   onCancel?: () => void;
 }
 
-const bristolScaleDescriptions = {
-  1: 'Separate hard lumps, like nuts',
-  2: 'Sausage-shaped but lumpy',
-  3: 'Like a sausage but with cracks',
-  4: 'Like a sausage, smooth and soft',
-  5: 'Soft blobs with clear-cut edges',
-  6: 'Fluffy pieces with ragged edges',
-  7: 'Watery, no solid pieces',
-};
+const categoryOptions = [
+  { value: 'food', label: 'Food', icon: '🍽️', description: 'Meals, snacks, dietary changes' },
+  { value: 'exercise', label: 'Exercise', icon: '🏃', description: 'Physical activity, sports' },
+  { value: 'medication', label: 'Medication', icon: '💊', description: 'Prescriptions, supplements' },
+  { value: 'other', label: 'Other', icon: '📝', description: 'General observations' },
+] as const;
 
-const urgencyDescriptions = {
-  1: 'No urgency - could wait',
-  2: 'Mild urgency - some pressure',
-  3: 'Moderate urgency - needed soon',
-  4: 'Extreme urgency - couldn\'t wait',
-};
-
-export function BowelMovementForm({
+export function NoteForm({
   initialData,
   onSubmit,
   onCancel
-}: BowelMovementFormProps) {
+}: NoteFormProps) {
   const router = useRouter();
-  const { createBowelMovement, isCreating } = useEntryStore();
+  const { createNote, isCreating } = useEntryStore();
 
   const now = new Date();
   const currentDate = now.toISOString().split('T')[0];
@@ -55,20 +45,20 @@ export function BowelMovementForm({
     control,
     handleSubmit: handleFormSubmit,
     formState: { errors },
-  } = useForm<CreateBowelMovementInput>({
+  } = useForm<CreateNoteInput>({
     defaultValues: {
       date: initialData?.date || currentDate,
       time: initialData?.time || currentTime,
-      consistency: initialData?.consistency || 4,
-      urgency: initialData?.urgency || 2,
-      notes: initialData?.notes || '',
+      category: initialData?.category || 'other',
+      content: initialData?.content || '',
+      tags: initialData?.tags || '',
     },
   });
 
-  const handleSubmit = async (data: CreateBowelMovementInput) => {
+  const handleSubmit = async (data: CreateNoteInput) => {
     try {
       // Validate the input
-      const validation = validateBowelMovementInput(data);
+      const validation = validateNoteInput(data);
       if (!validation.isValid) {
         Alert.alert('Validation Error', validation.errors.join('\n'));
         return;
@@ -77,12 +67,12 @@ export function BowelMovementForm({
       if (onSubmit) {
         await onSubmit(data);
       } else {
-        await createBowelMovement(data);
-        Alert.alert('Success', 'Bowel movement logged successfully!');
+        await createNote(data);
+        Alert.alert('Success', 'Note logged successfully!');
         router.back();
       }
     } catch {
-      Alert.alert('Error', 'Failed to log bowel movement. Please try again.');
+      Alert.alert('Error', 'Failed to log note. Please try again.');
     }
   };
 
@@ -94,46 +84,34 @@ export function BowelMovementForm({
     }
   };
 
-  const renderConsistencyOption = (value: number, selectedValue: number, onChange: (value: number) => void) => {
-    const isSelected = selectedValue === value;
+  const renderCategoryOption = (
+    category: typeof categoryOptions[number],
+    selectedValue: string,
+    onChange: (value: string) => void
+  ) => {
+    const isSelected = selectedValue === category.value;
     return (
       <TouchableOpacity
-        key={value}
-        style={[styles.scaleOption, isSelected && styles.selectedOption]}
-        onPress={() => onChange(value)}
+        key={category.value}
+        style={[styles.categoryOption, isSelected && styles.selectedOption]}
+        onPress={() => onChange(category.value)}
         accessibilityRole="button"
-        accessibilityLabel={`Bristol scale ${value}: ${bristolScaleDescriptions[value as keyof typeof bristolScaleDescriptions]}`}
+        accessibilityLabel={`Category: ${category.label} - ${category.description}`}
         accessibilityState={{ selected: isSelected }}
       >
-        <View style={styles.scaleHeader}>
-          <Text style={[styles.scaleNumber, isSelected && styles.selectedText]}>
-            {value}
+        <View style={styles.categoryHeader}>
+          <Text style={[styles.categoryIcon, isSelected && styles.selectedIconText]}>
+            {category.icon}
           </Text>
+          <View style={styles.categoryInfo}>
+            <Text style={[styles.categoryLabel, isSelected && styles.selectedText]}>
+              {category.label}
+            </Text>
+            <Text style={[styles.categoryDescription, isSelected && styles.selectedSubtext]}>
+              {category.description}
+            </Text>
+          </View>
         </View>
-        <Text style={[styles.scaleDescription, isSelected && styles.selectedText]}>
-          {bristolScaleDescriptions[value as keyof typeof bristolScaleDescriptions]}
-        </Text>
-      </TouchableOpacity>
-    );
-  };
-
-  const renderUrgencyOption = (value: number, selectedValue: number, onChange: (value: number) => void) => {
-    const isSelected = selectedValue === value;
-    return (
-      <TouchableOpacity
-        key={value}
-        style={[styles.urgencyOption, isSelected && styles.selectedOption]}
-        onPress={() => onChange(value)}
-        accessibilityRole="button"
-        accessibilityLabel={`Urgency level ${value}: ${urgencyDescriptions[value as keyof typeof urgencyDescriptions]}`}
-        accessibilityState={{ selected: isSelected }}
-      >
-        <Text style={[styles.urgencyNumber, isSelected && styles.selectedText]}>
-          {value}
-        </Text>
-        <Text style={[styles.urgencyDescription, isSelected && styles.selectedText]}>
-          {urgencyDescriptions[value as keyof typeof urgencyDescriptions]}
-        </Text>
       </TouchableOpacity>
     );
   };
@@ -142,8 +120,8 @@ export function BowelMovementForm({
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Text style={styles.title}>Log Bowel Movement</Text>
-          <Text style={styles.subtitle}>Track your symptoms</Text>
+          <Text style={styles.title}>Log Note</Text>
+          <Text style={styles.subtitle}>Record contextual information</Text>
         </View>
 
         <View style={styles.section}>
@@ -203,77 +181,76 @@ export function BowelMovementForm({
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Bristol Stool Scale</Text>
+          <Text style={styles.sectionTitle}>Category</Text>
           <Text style={styles.sectionDescription}>
-            Select the consistency that best matches your bowel movement
+            Select the type of note you&apos;re recording
           </Text>
           <Controller
             control={control}
-            name="consistency"
+            name="category"
             rules={{
-              required: 'Consistency is required',
-              min: { value: 1, message: 'Consistency must be between 1 and 7' },
-              max: { value: 7, message: 'Consistency must be between 1 and 7' }
+              required: 'Category is required',
             }}
             render={({ field: { onChange, value } }) => (
-              <View style={styles.scaleContainer}>
-                {[1, 2, 3, 4, 5, 6, 7].map(num => renderConsistencyOption(num, value, onChange))}
+              <View style={styles.categoryContainer}>
+                {categoryOptions.map(cat => renderCategoryOption(cat, value, onChange))}
               </View>
             )}
           />
-          {errors.consistency && <Text style={styles.errorText}>{errors.consistency.message}</Text>}
+          {errors.category && <Text style={styles.errorText}>{errors.category.message}</Text>}
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Urgency Level</Text>
-          <Text style={styles.sectionDescription}>
-            How urgent was the need to use the bathroom?
-          </Text>
+          <Text style={styles.sectionTitle}>Note Content</Text>
           <Controller
             control={control}
-            name="urgency"
+            name="content"
             rules={{
-              required: 'Urgency is required',
-              min: { value: 1, message: 'Urgency must be between 1 and 4' },
-              max: { value: 4, message: 'Urgency must be between 1 and 4' }
-            }}
-            render={({ field: { onChange, value } }) => (
-              <View style={styles.urgencyContainer}>
-                {[1, 2, 3, 4].map(num => renderUrgencyOption(num, value, onChange))}
-              </View>
-            )}
-          />
-          {errors.urgency && <Text style={styles.errorText}>{errors.urgency.message}</Text>}
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Notes (Optional)</Text>
-          <Controller
-            control={control}
-            name="notes"
-            rules={{
-              maxLength: { value: 500, message: 'Notes cannot exceed 500 characters' }
+              required: 'Note content is required',
+              minLength: { value: 1, message: 'Content cannot be empty' },
+              maxLength: { value: 1000, message: 'Content cannot exceed 1000 characters' }
             }}
             render={({ field: { onChange, value } }) => (
               <>
                 <TextInput
-                  style={[styles.notesInput, errors.notes && styles.errorInput]}
+                  style={[styles.contentInput, errors.content && styles.errorInput]}
                   value={value}
                   onChangeText={onChange}
-                  placeholder="Any additional notes about this bowel movement..."
+                  placeholder="Describe what you want to track..."
                   multiline
-                  numberOfLines={3}
-                  maxLength={500}
-                  accessibilityLabel="Additional notes"
-                  accessibilityHint="Optional notes about this bowel movement, maximum 500 characters"
+                  numberOfLines={5}
+                  maxLength={1000}
+                  accessibilityLabel="Note content"
+                  accessibilityHint="Describe what you want to track, maximum 1000 characters"
                 />
                 <Text style={styles.characterCount}>
-                  {value?.length || 0}/500 characters
+                  {value?.length || 0}/1000 characters
                 </Text>
               </>
             )}
           />
-          {errors.notes && <Text style={styles.errorText}>{errors.notes.message}</Text>}
+          {errors.content && <Text style={styles.errorText}>{errors.content.message}</Text>}
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Tags (Optional)</Text>
+          <Text style={styles.sectionDescription}>
+            Add comma-separated tags for easier searching
+          </Text>
+          <Controller
+            control={control}
+            name="tags"
+            render={({ field: { onChange, value } }) => (
+              <TextInput
+                style={styles.tagsInput}
+                value={value}
+                onChangeText={onChange}
+                placeholder="e.g. breakfast, gluten-free, important"
+                accessibilityLabel="Tags"
+                accessibilityHint="Optional comma-separated tags"
+              />
+            )}
+          />
         </View>
       </ScrollView>
 
@@ -285,7 +262,7 @@ export function BowelMovementForm({
           style={styles.cancelButton}
         />
         <Button
-          title="Save Entry"
+          title="Save Note"
           onPress={handleFormSubmit(handleSubmit)}
           loading={isCreating}
           style={styles.saveButton}
@@ -354,13 +331,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E5E5EA',
   },
-  scaleContainer: {
-    gap: 8,
+  categoryContainer: {
+    gap: 12,
   },
-  scaleOption: {
+  categoryOption: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    padding: 12,
+    borderRadius: 12,
+    padding: 16,
     borderWidth: 1,
     borderColor: '#E5E5EA',
   },
@@ -368,49 +345,37 @@ const styles = StyleSheet.create({
     backgroundColor: '#007AFF',
     borderColor: '#007AFF',
   },
-  scaleHeader: {
+  categoryHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 4,
+    gap: 12,
   },
-  scaleNumber: {
+  categoryIcon: {
+    fontSize: 32,
+  },
+  selectedIconText: {
+    opacity: 1,
+  },
+  categoryInfo: {
+    flex: 1,
+  },
+  categoryLabel: {
     fontSize: 18,
     fontWeight: '600',
     color: '#1C1C1E',
-    width: 24,
+    marginBottom: 4,
   },
-  scaleDescription: {
+  categoryDescription: {
     fontSize: 14,
     color: '#8E8E93',
   },
   selectedText: {
     color: '#FFFFFF',
   },
-  urgencyContainer: {
-    gap: 8,
+  selectedSubtext: {
+    color: 'rgba(255, 255, 255, 0.8)',
   },
-  urgencyOption: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  urgencyNumber: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1C1C1E',
-    width: 24,
-  },
-  urgencyDescription: {
-    fontSize: 14,
-    color: '#8E8E93',
-    flex: 1,
-  },
-  notesInput: {
+  contentInput: {
     backgroundColor: '#FFFFFF',
     borderRadius: 8,
     padding: 12,
@@ -418,7 +383,7 @@ const styles = StyleSheet.create({
     color: '#1C1C1E',
     borderWidth: 1,
     borderColor: '#E5E5EA',
-    minHeight: 80,
+    minHeight: 120,
     textAlignVertical: 'top',
   },
   characterCount: {
@@ -426,6 +391,15 @@ const styles = StyleSheet.create({
     color: '#8E8E93',
     textAlign: 'right',
     marginTop: 4,
+  },
+  tagsInput: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    color: '#1C1C1E',
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
   },
   buttonContainer: {
     flexDirection: 'row',

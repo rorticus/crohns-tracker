@@ -31,6 +31,7 @@ interface EntryState {
 
   // Data operations
   loadEntriesForDate: (date: string) => Promise<void>;
+  fetchEntriesByDate: (date: string) => Promise<void>; // Alias for loadEntriesForDate
   createBowelMovement: (input: CreateBowelMovementInput) => Promise<BowelMovementEntry>;
   createNote: (input: CreateNoteInput) => Promise<NoteEntry>;
   updateEntry: (entryId: number, updates: any) => Promise<CombinedEntry>;
@@ -94,6 +95,11 @@ export const useEntryStore = create<EntryState>((set, get) => ({
         isLoading: false,
       });
     }
+  },
+
+  // Alias for loadEntriesForDate for consistency with naming conventions
+  fetchEntriesByDate: async (date: string) => {
+    return get().loadEntriesForDate(date);
   },
 
   // Create bowel movement entry
@@ -170,8 +176,7 @@ export const useEntryStore = create<EntryState>((set, get) => ({
       if (currentEntry.type === 'bowel_movement') {
         updatedEntry = await EntryService.updateBowelMovement(entryId, updates);
       } else {
-        // Note update would go here when implemented
-        throw new Error('Note updates not yet implemented');
+        updatedEntry = await EntryService.updateNote(entryId, updates);
       }
 
       // Update the entry in the current entries array

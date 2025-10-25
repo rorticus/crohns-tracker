@@ -1,14 +1,22 @@
-import { DATE_FORMATS } from './constants';
-
 /**
  * Date utility functions for the Crohns Tracker app
  */
 
-// Format date for display
+// Format date for display using user's locale (e.g., "Oct 25, 2025" in US)
 export const formatDateForDisplay = (date: Date | string): string => {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
-  return dateObj.toLocaleDateString('en-US', {
+  return dateObj.toLocaleDateString(undefined, {
     month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+};
+
+// Format date in short numeric format using user's locale (e.g., "10/25/2025" in US)
+export const formatDateShort = (date: Date | string): string => {
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  return dateObj.toLocaleDateString(undefined, {
+    month: 'numeric',
     day: 'numeric',
     year: 'numeric',
   });

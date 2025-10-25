@@ -230,3 +230,12 @@ export class ValidationService {
     return Number.isInteger(value) && value >= 1 && value <= 4;
   }
 }
+
+// Convenience exports for forms
+export const validateBowelMovementInput = (input: CreateBowelMovementInput): ValidationResult => {
+  return ValidationService.validateBowelMovementInput(input);
+};
+
+export const validateNoteInput = (input: CreateNoteInput): ValidationResult => {
+  return ValidationService.validateNoteInput(input);
+};

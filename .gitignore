@@ -41,3 +41,21 @@ app-example
 # generated native folders
 /ios
 /android
+
+# build
+build/
+*.log
+
+# env files
+.env*
+
+# test coverage
+coverage/
+
+# IDE
+.vscode/
+.idea/
+
+# temp files
+*.tmp
+*.swp

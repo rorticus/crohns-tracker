@@ -1,4 +1,4 @@
-import { eq, and, between } from 'drizzle-orm';
+import { eq, between } from 'drizzle-orm';
 import db from '@/db/client';
 import { entries, bowelMovements, notes } from '@/db/schema';
 import {
@@ -301,6 +301,66 @@ export class EntryService {
     }
   }
 
+  // Update note entry
+  static async updateNote(
+    entryId: number,
+    updates: Partial<CreateNoteInput>
+  ): Promise<NoteEntry> {
+    try {
+      // Get existing entry
+      const existingEntry = await this.getEntry(entryId);
+      if (!existingEntry || existingEntry.type !== 'note') {
+        throw new EntryServiceError('Note entry not found', 'NOT_FOUND');
+      }
+
+      // Update entry if date/time changed
+      if (updates.date || updates.time) {
+        const newDate = updates.date || existingEntry.date;
+        const newTime = updates.time || existingEntry.time;
+        const newTimestamp = ValidationService.generateTimestamp(newDate, newTime);
+
+        await db
+          .update(entries)
+          .set({
+            date: newDate,
+            time: newTime,
+            timestamp: newTimestamp,
+            updatedAt: new Date().toISOString(),
+          })
+          .where(eq(entries.id, entryId));
+      }
+
+      // Update note data
+      const noteUpdates: any = {};
+      if (updates.category !== undefined) noteUpdates.category = updates.category;
+      if (updates.content !== undefined) noteUpdates.content = updates.content;
+      if (updates.tags !== undefined) noteUpdates.tags = updates.tags;
+
+      if (Object.keys(noteUpdates).length > 0) {
+        await db
+          .update(notes)
+          .set(noteUpdates)
+          .where(eq(notes.entryId, entryId));
+      }
+
+      // Return updated entry
+      const updatedEntries = await this.getEntriesForDate(
+        updates.date || existingEntry.date
+      );
+      const updatedEntry = updatedEntries.find(e => e.id === entryId);
+
+      if (!updatedEntry || updatedEntry.type !== 'note') {
+        throw new EntryServiceError('Failed to retrieve updated entry', 'UPDATE_ERROR');
+      }
+
+      return updatedEntry;
+    } catch (error) {
+      console.error('Error updating note entry:', error);
+      if (error instanceof EntryServiceError) throw error;
+      throw new EntryServiceError('Failed to update note', 'UPDATE_ERROR');
+    }
+  }
+
   // Delete entry
   static async deleteEntry(entryId: number): Promise<void> {
     try {
@@ -392,5 +452,13 @@ export class EntryService {
       console.error('Error getting entry count:', error);
       throw new EntryServiceError('Failed to get entry count', 'READ_ERROR');
     }
+  }
+
+  // Alias for getEntriesInDateRange for consistency with naming
+  static async getEntriesForDateRange(
+    startDate: string,
+    endDate: string
+  ): Promise<CombinedEntry[]> {
+    return this.getEntriesInDateRange(startDate, endDate);
   }
 }
