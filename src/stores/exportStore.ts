@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { ExportService, ExportFormat, ExportOptions, ExportResult } from '@/services/exportService';
+import { exportData, shareExportFile, getExportPreview, ExportFormat, ExportOptions, ExportResult } from '@/services/exportService';
 
 interface ExportState {
   // Export configuration
@@ -93,7 +93,7 @@ export const useExportStore = create<ExportState>((set, get) => {
 
         set({ exportProgress: 30 });
 
-        const result = await ExportService.exportData(options);
+        const result = await exportData(options);
 
         set({ exportProgress: 100 });
 
@@ -131,7 +131,7 @@ export const useExportStore = create<ExportState>((set, get) => {
       set({ isSharing: true, error: null });
 
       try {
-        const success = await ExportService.shareExportFile(filePath);
+        const success = await shareExportFile(filePath);
         set({ isSharing: false });
         return success;
       } catch (error) {
@@ -156,7 +156,7 @@ export const useExportStore = create<ExportState>((set, get) => {
           format: state.format,
         };
 
-        const preview = await ExportService.getExportPreview(options, 10);
+        const preview = await getExportPreview(options, 10);
         set({
           preview,
           isLoadingPreview: false,

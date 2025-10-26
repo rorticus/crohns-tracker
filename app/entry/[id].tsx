@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { BowelMovementForm } from '@/components/Forms/BowelMovementForm';
 import { NoteForm } from '@/components/Forms/NoteForm';
-import { EntryService } from '@/services/entryService';
+import { getEntry } from '@/services/entryService';
 import { useEntryStore } from '@/stores/entryStore';
 import { CombinedEntry, CreateBowelMovementInput, CreateNoteInput } from '@/types/entry';
 import { Button } from '@/components/UI/Button';
@@ -29,7 +29,7 @@ export default function EditEntryScreen() {
         return;
       }
 
-      const loadedEntry = await EntryService.getEntry(entryId);
+      const loadedEntry = await getEntry(entryId);
 
       if (!loadedEntry) {
         setError('Entry not found');

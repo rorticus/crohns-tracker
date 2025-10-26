@@ -1,5 +1,12 @@
 import { create } from 'zustand';
-import { EntryService } from '@/services/entryService';
+import {
+  getEntriesForDate,
+  createBowelMovement,
+  createNote,
+  updateBowelMovement,
+  updateNote,
+  deleteEntry,
+} from '@/services/entryService';
 import {
   CombinedEntry,
   CreateBowelMovementInput,
@@ -82,7 +89,7 @@ export const useEntryStore = create<EntryState>((set, get) => ({
     set({ isLoading: true, error: null });
 
     try {
-      const entries = await EntryService.getEntriesForDate(date);
+      const entries = await getEntriesForDate(date);
       set({
         entries,
         selectedDate: date,
@@ -107,7 +114,7 @@ export const useEntryStore = create<EntryState>((set, get) => ({
     set({ isCreating: true, error: null });
 
     try {
-      const newEntry = await EntryService.createBowelMovement(input);
+      const newEntry = await createBowelMovement(input);
 
       // Add to entries if it's for the currently selected date
       const currentState = get();
@@ -136,7 +143,7 @@ export const useEntryStore = create<EntryState>((set, get) => ({
     set({ isCreating: true, error: null });
 
     try {
-      const newEntry = await EntryService.createNote(input);
+      const newEntry = await createNote(input);
 
       // Add to entries if it's for the currently selected date
       const currentState = get();
@@ -174,9 +181,9 @@ export const useEntryStore = create<EntryState>((set, get) => ({
       let updatedEntry: CombinedEntry;
 
       if (currentEntry.type === 'bowel_movement') {
-        updatedEntry = await EntryService.updateBowelMovement(entryId, updates);
+        updatedEntry = await updateBowelMovement(entryId, updates);
       } else {
-        updatedEntry = await EntryService.updateNote(entryId, updates);
+        updatedEntry = await updateNote(entryId, updates);
       }
 
       // Update the entry in the current entries array
@@ -208,7 +215,7 @@ export const useEntryStore = create<EntryState>((set, get) => ({
     set({ isDeleting: true, error: null });
 
     try {
-      await EntryService.deleteEntry(entryId);
+      await deleteEntry(entryId);
 
       // Remove from entries array
       const currentState = get();
