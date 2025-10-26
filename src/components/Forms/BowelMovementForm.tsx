@@ -15,6 +15,8 @@ import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { useEntryStore } from '@/stores/entryStore';
 import { Button } from '@/components/UI/Button';
+import { DatePicker } from '@/components/UI/DatePicker';
+import { TimePicker } from '@/components/UI/TimePicker';
 import { CreateBowelMovementInput } from '@/types/entry';
 import { validateBowelMovementInput } from '@/services/validationService';
 
@@ -160,56 +162,44 @@ export function BowelMovementForm({
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Date & Time</Text>
           <View style={styles.dateTimeContainer}>
-            <View style={styles.dateTimeField}>
-              <Text style={styles.fieldLabel}>Date</Text>
-              <Controller
-                control={control}
-                name="date"
-                rules={{
-                  required: 'Date is required',
-                  pattern: {
-                    value: /^\d{4}-\d{2}-\d{2}$/,
-                    message: 'Date must be in YYYY-MM-DD format'
-                  }
-                }}
-                render={({ field: { onChange, value } }) => (
-                  <TextInput
-                    style={[styles.dateTimeInput, errors.date && styles.errorInput]}
-                    value={value}
-                    onChangeText={onChange}
-                    placeholder="YYYY-MM-DD"
-                    accessibilityLabel="Entry date"
-                    accessibilityHint="Enter date in YYYY-MM-DD format"
-                  />
-                )}
-              />
-              {errors.date && <Text style={styles.errorText}>{errors.date.message}</Text>}
-            </View>
-            <View style={styles.dateTimeField}>
-              <Text style={styles.fieldLabel}>Time</Text>
-              <Controller
-                control={control}
-                name="time"
-                rules={{
-                  required: 'Time is required',
-                  pattern: {
-                    value: /^\d{2}:\d{2}$/,
-                    message: 'Time must be in HH:MM format'
-                  }
-                }}
-                render={({ field: { onChange, value } }) => (
-                  <TextInput
-                    style={[styles.dateTimeInput, errors.time && styles.errorInput]}
-                    value={value}
-                    onChangeText={onChange}
-                    placeholder="HH:MM"
-                    accessibilityLabel="Entry time"
-                    accessibilityHint="Enter time in HH:MM format"
-                  />
-                )}
-              />
-              {errors.time && <Text style={styles.errorText}>{errors.time.message}</Text>}
-            </View>
+            <Controller
+              control={control}
+              name="date"
+              rules={{
+                required: 'Date is required',
+                pattern: {
+                  value: /^\d{4}-\d{2}-\d{2}$/,
+                  message: 'Date must be in YYYY-MM-DD format'
+                }
+              }}
+              render={({ field: { onChange, value } }) => (
+                <DatePicker
+                  value={value}
+                  onChange={onChange}
+                  label="Date"
+                  error={errors.date?.message}
+                />
+              )}
+            />
+            <Controller
+              control={control}
+              name="time"
+              rules={{
+                required: 'Time is required',
+                pattern: {
+                  value: /^\d{2}:\d{2}$/,
+                  message: 'Time must be in HH:MM format'
+                }
+              }}
+              render={({ field: { onChange, value } }) => (
+                <TimePicker
+                  value={value}
+                  onChange={onChange}
+                  label="Time"
+                  error={errors.time?.message}
+                />
+              )}
+            />
           </View>
         </View>
 
