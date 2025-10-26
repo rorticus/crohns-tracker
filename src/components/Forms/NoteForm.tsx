@@ -7,6 +7,8 @@ import {
   ScrollView,
   StyleSheet,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -118,11 +120,20 @@ export function NoteForm({
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Log Note</Text>
-          <Text style={styles.subtitle}>Record contextual information</Text>
-        </View>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardAvoidingView}
+        keyboardVerticalOffset={0}
+      >
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.header}>
+            <Text style={styles.title}>Log Note</Text>
+            <Text style={styles.subtitle}>Record contextual information</Text>
+          </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Date & Time</Text>
@@ -252,22 +263,23 @@ export function NoteForm({
             )}
           />
         </View>
-      </ScrollView>
+        </ScrollView>
 
-      <View style={styles.buttonContainer}>
-        <Button
-          title="Cancel"
-          onPress={handleCancel}
-          variant="outline"
-          style={styles.cancelButton}
-        />
-        <Button
-          title="Save Note"
-          onPress={handleFormSubmit(handleSubmit)}
-          loading={isCreating}
-          style={styles.saveButton}
-        />
-      </View>
+        <View style={styles.buttonContainer}>
+          <Button
+            title="Cancel"
+            onPress={handleCancel}
+            variant="outline"
+            style={styles.cancelButton}
+          />
+          <Button
+            title="Save Note"
+            onPress={handleFormSubmit(handleSubmit)}
+            loading={isCreating}
+            style={styles.saveButton}
+          />
+        </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -276,6 +288,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F2F2F7',
+  },
+  keyboardAvoidingView: {
+    flex: 1,
   },
   scrollView: {
     flex: 1,
