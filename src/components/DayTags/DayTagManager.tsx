@@ -17,7 +17,6 @@ import {
   Alert,
 } from 'react-native';
 import { DayTagPicker } from './DayTagPicker';
-import { DayTagBadge } from './DayTagBadge';
 import { useDayTagStore } from '../../stores/dayTagStore';
 import { TAG_TEST_IDS, type DayTagManagerProps } from '../../types/dayTag';
 
@@ -122,10 +121,6 @@ export function DayTagManager({
     setHasChanges(true);
   };
 
-  const handleRemoveTag = (tagName: string) => {
-    setLocalTags(localTags.filter((tag) => tag !== tagName));
-    setHasChanges(true);
-  };
 
   // Format date for display
   const formatDate = (dateString: string) => {
@@ -188,36 +183,15 @@ export function DayTagManager({
             </View>
           )}
 
-          {/* Current tags */}
+          {/* Tag picker - shows selected tags and quick add */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>
-              Current Tags ({localTags.length})
+              Manage Tags ({localTags.length})
             </Text>
-            {localTags.length === 0 ? (
-              <Text style={styles.emptyText}>
-                No tags for this day yet. Add tags below to categorize this day.
-              </Text>
-            ) : (
-              <View style={styles.tagsContainer}>
-                {localTags.map((tag, index) => (
-                  <DayTagBadge
-                    key={`${tag}-${index}`}
-                    tagName={tag}
-                    isInherited={false}
-                    size="large"
-                    onPress={() => handleRemoveTag(tag)}
-                  />
-                ))}
-              </View>
-            )}
-          </View>
-
-          {/* Tag picker */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Add Tags</Text>
             <Text style={styles.sectionDescription}>
-              Type to search existing tags or create new ones. Press Enter or tap a
-              suggestion to add.
+              {localTags.length === 0
+                ? 'Tap existing tags below to add them, or type to create new ones.'
+                : 'Tap a tag to remove it. Add more by tapping below or typing new ones.'}
             </Text>
 
             {isLoadingTags ? (
@@ -227,7 +201,7 @@ export function DayTagManager({
                 selectedTags={localTags}
                 onTagsChange={handleTagsChange}
                 availableTags={allTags}
-                placeholder="Add tag (e.g., vacation, new medicine)"
+                placeholder="Type to create new tag..."
               />
             )}
           </View>
@@ -333,17 +307,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     marginBottom: 12,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: '#999',
-    fontStyle: 'italic',
-    textAlign: 'center',
-    paddingVertical: 20,
-  },
-  tagsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
   },
   helpSection: {
     backgroundColor: '#fff',

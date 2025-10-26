@@ -53,6 +53,18 @@ export function DayTagPicker({
       .slice(0, 5); // Limit to 5 suggestions
   }, [inputValue, availableTags, selectedTags]);
 
+  // Available tags that aren't already selected (for quick add)
+  const availableForQuickAdd = useMemo(() => {
+    return availableTags
+      .filter((tag) => {
+        const isAlreadySelected = selectedTags.some(
+          (selected) => selected.toLowerCase() === tag.displayName.toLowerCase()
+        );
+        return !isAlreadySelected;
+      })
+      .slice(0, 10); // Show top 10 by usage
+  }, [availableTags, selectedTags]);
+
   const handleAddTag = (tagName: string) => {
     const trimmed = tagName.trim();
     if (!trimmed) return;
@@ -176,6 +188,28 @@ export function DayTagPicker({
           />
         </View>
       )}
+
+      {/* Quick Add - Show existing tags */}
+      {!showSuggestions && availableForQuickAdd.length > 0 && selectedTags.length < maxTags && (
+        <View style={styles.quickAddContainer}>
+          <Text style={styles.quickAddTitle}>Quick Add from Existing Tags:</Text>
+          <View style={styles.quickAddTags}>
+            {availableForQuickAdd.map((tag) => (
+              <Pressable
+                key={tag.id}
+                style={styles.quickAddTag}
+                onPress={() => handleSuggestionPress(tag.displayName)}
+                disabled={disabled}
+              >
+                <Text style={styles.quickAddTagText}>{tag.displayName}</Text>
+                {tag.usageCount > 0 && (
+                  <Text style={styles.quickAddTagCount}>×{tag.usageCount}</Text>
+                )}
+              </Pressable>
+            ))}
+          </View>
+        </View>
+      )}
     </KeyboardAvoidingView>
   );
 }
@@ -237,5 +271,39 @@ const styles = StyleSheet.create({
   suggestionUsage: {
     fontSize: 12,
     color: '#666',
+  },
+  quickAddContainer: {
+    marginTop: 16,
+  },
+  quickAddTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#666',
+    marginBottom: 8,
+  },
+  quickAddTags: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  quickAddTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F0F0F0',
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  quickAddTagText: {
+    fontSize: 14,
+    color: '#333',
+    marginRight: 4,
+  },
+  quickAddTagCount: {
+    fontSize: 11,
+    color: '#666',
+    fontWeight: '600',
   },
 });
