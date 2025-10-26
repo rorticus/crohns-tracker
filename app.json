@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "crohns-tracker",
+    "name": "Crohns Tracker",
     "slug": "crohns-tracker",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -37,7 +37,7 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#5A3885",
           "dark": {
             "backgroundColor": "#000000"
           }
