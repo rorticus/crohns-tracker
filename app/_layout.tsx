@@ -17,7 +17,7 @@ export default function RootLayout() {
           name="entry"
           options={{
             presentation: "modal",
-            headerTitle: "Add Entry",
+            headerTitle: "Entry",
           }}
         />
       </Stack>
