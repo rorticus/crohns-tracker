@@ -28,6 +28,8 @@ export default function CalendarScreen() {
   };
 
   const todaysEntries = entries.filter(entry => entry.date === selectedDate);
+  const bowelMovementCount = todaysEntries.filter(entry => entry.type === 'bowel_movement').length;
+  const noteCount = todaysEntries.filter(entry => entry.type === 'note').length;
 
   return (
     <SafeAreaView style={styles.container} testID="calendar-screen">
@@ -82,6 +84,25 @@ export default function CalendarScreen() {
 
         <View style={styles.recentEntries}>
           <Text style={styles.sectionTitle}>Entries for {formatDateShort(selectedDate)}</Text>
+
+          {/* Entry Summary */}
+          {todaysEntries.length > 0 && (
+            <View style={styles.summaryContainer}>
+              <View style={styles.summaryItem}>
+                <Text style={styles.summaryIcon}>🚽</Text>
+                <Text style={styles.summaryText}>
+                  {bowelMovementCount} {bowelMovementCount === 1 ? 'Bowel Movement' : 'Bowel Movements'}
+                </Text>
+              </View>
+              <View style={styles.summaryItem}>
+                <Text style={styles.summaryIcon}>📝</Text>
+                <Text style={styles.summaryText}>
+                  {noteCount} {noteCount === 1 ? 'Note' : 'Notes'}
+                </Text>
+              </View>
+            </View>
+          )}
+
           {todaysEntries.length === 0 ? (
             <Text style={styles.emptyText} accessibilityLabel="No entries for selected date">
               No entries for this date
@@ -164,6 +185,27 @@ const styles = StyleSheet.create({
   },
   recentEntries: {
     flex: 1,
+  },
+  summaryContainer: {
+    backgroundColor: '#F9F9F9',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  summaryItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  summaryIcon: {
+    fontSize: 20,
+  },
+  summaryText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#1C1C1E',
   },
   emptyText: {
     textAlign: 'center',
