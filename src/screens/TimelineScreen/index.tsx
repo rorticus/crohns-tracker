@@ -26,9 +26,15 @@ export default function TimelineScreen({ selectedDate }: TimelineScreenProps) {
     deleteEntry,
   } = useEntryStore();
 
-  const now = new Date();
+  const getTodayString = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
   const [currentDate, setCurrentDate] = useState(
-    selectedDate || now.toISOString().split('T')[0]
+    selectedDate || getTodayString()
   );
 
   useEffect(() => {
@@ -74,32 +80,44 @@ export default function TimelineScreen({ selectedDate }: TimelineScreenProps) {
   };
 
   const handlePreviousDay = () => {
-    const date = new Date(currentDate);
+    const [year, month, day] = currentDate.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
     date.setDate(date.getDate() - 1);
-    setCurrentDate(date.toISOString().split('T')[0]);
+    const newYear = date.getFullYear();
+    const newMonth = String(date.getMonth() + 1).padStart(2, '0');
+    const newDay = String(date.getDate()).padStart(2, '0');
+    setCurrentDate(`${newYear}-${newMonth}-${newDay}`);
   };
 
   const handleNextDay = () => {
-    const date = new Date(currentDate);
+    const [year, month, day] = currentDate.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
     date.setDate(date.getDate() + 1);
-    setCurrentDate(date.toISOString().split('T')[0]);
+    const newYear = date.getFullYear();
+    const newMonth = String(date.getMonth() + 1).padStart(2, '0');
+    const newDay = String(date.getDate()).padStart(2, '0');
+    setCurrentDate(`${newYear}-${newMonth}-${newDay}`);
   };
 
   const handleToday = () => {
-    setCurrentDate(now.toISOString().split('T')[0]);
+    setCurrentDate(getTodayString());
   };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
+    const todayString = getTodayString();
+
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayString = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
 
-    if (dateString === today.toISOString().split('T')[0]) {
+    if (dateString === todayString) {
       return 'Today';
-    } else if (dateString === yesterday.toISOString().split('T')[0]) {
+    } else if (dateString === yesterdayString) {
       return 'Yesterday';
     } else {
+      const [year, month, day] = dateString.split('-').map(Number);
+      const date = new Date(year, month - 1, day);
       return date.toLocaleDateString(undefined, {
         weekday: 'long',
         month: 'long',
@@ -140,11 +158,15 @@ export default function TimelineScreen({ selectedDate }: TimelineScreenProps) {
           <View style={styles.dateContainer}>
             <Text style={styles.dateText}>{formatDate(currentDate)}</Text>
             <Text style={styles.dateSubtext}>
-              {new Date(currentDate).toLocaleDateString(undefined, {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-              })}
+              {(() => {
+                const [year, month, day] = currentDate.split('-').map(Number);
+                const date = new Date(year, month - 1, day);
+                return date.toLocaleDateString(undefined, {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric',
+                });
+              })()}
             </Text>
           </View>
 
@@ -158,7 +180,7 @@ export default function TimelineScreen({ selectedDate }: TimelineScreenProps) {
           </TouchableOpacity>
         </View>
 
-        {currentDate !== now.toISOString().split('T')[0] && (
+        {currentDate !== getTodayString() && (
           <TouchableOpacity
             onPress={handleToday}
             style={styles.todayButton}

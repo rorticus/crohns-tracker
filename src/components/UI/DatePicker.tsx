@@ -95,7 +95,13 @@ export function DatePicker({
             </View>
 
             <Calendar
-              current={value || new Date().toISOString().split('T')[0]}
+              current={value || (() => {
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const day = String(now.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+              })()}
               onDayPress={(day) => handleDateSelect(day.dateString)}
               markedDates={{
                 [value]: {

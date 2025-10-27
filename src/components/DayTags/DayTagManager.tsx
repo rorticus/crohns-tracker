@@ -122,9 +122,10 @@ export function DayTagManager({
   };
 
 
-  // Format date for display
+  // Format date for display (using local timezone)
   const formatDate = (dateString: string) => {
-    const dateObj = new Date(dateString);
+    const [year, month, day] = dateString.split('-').map(Number);
+    const dateObj = new Date(year, month - 1, day);
     return dateObj.toLocaleDateString('en-US', {
       weekday: 'long',
       year: 'numeric',

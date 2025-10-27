@@ -2,9 +2,15 @@
  * Date utility functions for the Crohns Tracker app
  */
 
+// Helper function to convert date string (YYYY-MM-DD) to Date object in local timezone
+const dateStringToLocalDate = (dateString: string): Date => {
+  const [year, month, day] = dateString.split('-').map(Number);
+  return new Date(year, month - 1, day);
+};
+
 // Format date for display using user's locale (e.g., "Oct 25, 2025" in US)
 export const formatDateForDisplay = (date: Date | string): string => {
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  const dateObj = typeof date === 'string' ? dateStringToLocalDate(date) : date;
   return dateObj.toLocaleDateString(undefined, {
     month: 'short',
     day: 'numeric',
@@ -14,7 +20,7 @@ export const formatDateForDisplay = (date: Date | string): string => {
 
 // Format date in short numeric format using user's locale (e.g., "10/25/2025" in US)
 export const formatDateShort = (date: Date | string): string => {
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  const dateObj = typeof date === 'string' ? dateStringToLocalDate(date) : date;
   return dateObj.toLocaleDateString(undefined, {
     month: 'numeric',
     day: 'numeric',
@@ -24,8 +30,11 @@ export const formatDateShort = (date: Date | string): string => {
 
 // Format date for database storage (YYYY-MM-DD)
 export const formatDateForDatabase = (date: Date | string): string => {
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
-  return dateObj.toISOString().split('T')[0];
+  const dateObj = typeof date === 'string' ? dateStringToLocalDate(date) : date;
+  const year = dateObj.getFullYear();
+  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const day = String(dateObj.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 };
 
 // Format time for display (12-hour format)
@@ -41,9 +50,13 @@ export const formatTimeForDatabase = (date: Date): string => {
   return date.toTimeString().split(' ')[0].substring(0, 5);
 };
 
-// Get current date in database format
+// Get current date in database format (local timezone)
 export const getCurrentDate = (): string => {
-  return formatDateForDatabase(new Date());
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 };
 
 // Get current time in database format
@@ -72,7 +85,7 @@ export const isToday = (date: string): boolean => {
 
 // Check if a date is in the past
 export const isPastDate = (date: string): boolean => {
-  const inputDate = new Date(date);
+  const inputDate = dateStringToLocalDate(date);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   return inputDate < today;
@@ -80,7 +93,7 @@ export const isPastDate = (date: string): boolean => {
 
 // Check if a date is in the future
 export const isFutureDate = (date: string): boolean => {
-  const inputDate = new Date(date);
+  const inputDate = dateStringToLocalDate(date);
   const today = new Date();
   today.setHours(23, 59, 59, 999);
   return inputDate > today;
@@ -89,8 +102,8 @@ export const isFutureDate = (date: string): boolean => {
 // Get date range for calendar views
 export const getDateRange = (startDate: string, endDate: string): string[] => {
   const dates: string[] = [];
-  const currentDate = new Date(startDate);
-  const endDateObj = new Date(endDate);
+  const currentDate = dateStringToLocalDate(startDate);
+  const endDateObj = dateStringToLocalDate(endDate);
 
   while (currentDate <= endDateObj) {
     dates.push(formatDateForDatabase(currentDate));
@@ -102,7 +115,7 @@ export const getDateRange = (startDate: string, endDate: string): string[] => {
 
 // Get start and end of week for a given date
 export const getWeekRange = (date: string): { start: string; end: string } => {
-  const dateObj = new Date(date);
+  const dateObj = dateStringToLocalDate(date);
   const dayOfWeek = dateObj.getDay();
 
   const startOfWeek = new Date(dateObj);
@@ -119,7 +132,7 @@ export const getWeekRange = (date: string): { start: string; end: string } => {
 
 // Get start and end of month for a given date
 export const getMonthRange = (date: string): { start: string; end: string } => {
-  const dateObj = new Date(date);
+  const dateObj = dateStringToLocalDate(date);
 
   const startOfMonth = new Date(dateObj.getFullYear(), dateObj.getMonth(), 1);
   const endOfMonth = new Date(dateObj.getFullYear(), dateObj.getMonth() + 1, 0);
@@ -132,7 +145,7 @@ export const getMonthRange = (date: string): { start: string; end: string } => {
 
 // Add days to a date
 export const addDays = (date: string, days: number): string => {
-  const dateObj = new Date(date);
+  const dateObj = dateStringToLocalDate(date);
   dateObj.setDate(dateObj.getDate() + days);
   return formatDateForDatabase(dateObj);
 };
@@ -144,8 +157,8 @@ export const subtractDays = (date: string, days: number): string => {
 
 // Get days between two dates
 export const getDaysBetween = (startDate: string, endDate: string): number => {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
+  const start = dateStringToLocalDate(startDate);
+  const end = dateStringToLocalDate(endDate);
   const diffTime = Math.abs(end.getTime() - start.getTime());
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 };
@@ -189,8 +202,8 @@ export const isValidDateString = (date: string): boolean => {
   const regex = /^\d{4}-\d{2}-\d{2}$/;
   if (!regex.test(date)) return false;
 
-  const dateObj = new Date(date);
-  return !isNaN(dateObj.getTime()) && dateObj.toISOString().substr(0, 10) === date;
+  const dateObj = dateStringToLocalDate(date);
+  return !isNaN(dateObj.getTime()) && formatDateForDatabase(dateObj) === date;
 };
 
 // Validate time string format

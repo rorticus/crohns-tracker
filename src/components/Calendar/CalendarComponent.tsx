@@ -26,7 +26,12 @@ export const CalendarComponent: React.FC<CalendarComponentProps> = ({
 
   // Load tagged dates for current month when component mounts or month changes
   useEffect(() => {
-    const date = new Date(selectedDate || new Date());
+    const date = selectedDate
+      ? (() => {
+          const [year, month, day] = selectedDate.split('-').map(Number);
+          return new Date(year, month - 1, day);
+        })()
+      : new Date();
     const year = date.getFullYear();
     const month = date.getMonth() + 1; // getMonth() returns 0-11
     loadTaggedDatesInMonth(year, month);
@@ -86,7 +91,14 @@ export const CalendarComponent: React.FC<CalendarComponentProps> = ({
     onDateSelect(day.dateString);
   };
 
-  const today = new Date().toISOString().split('T')[0];
+  // Get today's date in local timezone (not UTC)
+  const today = (() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  })();
 
   return (
     <View style={styles.container} testID={testID}>

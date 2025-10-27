@@ -9,12 +9,16 @@ interface EmptyStateProps {
 
 export function EmptyState({ date, onAddEntry }: EmptyStateProps) {
   const formattedDate = date
-    ? new Date(date).toLocaleDateString(undefined, {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      })
+    ? (() => {
+        const [year, month, day] = date.split('-').map(Number);
+        const dateObj = new Date(year, month - 1, day);
+        return dateObj.toLocaleDateString(undefined, {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        });
+      })()
     : 'this day';
 
   return (
