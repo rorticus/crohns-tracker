@@ -1,11 +1,13 @@
 import { create } from 'zustand';
 import { exportData, shareExportFile, getExportPreview, ExportFormat, ExportOptions, ExportResult } from '@/services/exportService';
+import { TagFilter } from '@/types/dayTag';
 
 interface ExportState {
   // Export configuration
   startDate: string;
   endDate: string;
   format: ExportFormat;
+  tagFilter: TagFilter | null;
 
   // Export status
   isExporting: boolean;
@@ -25,6 +27,7 @@ interface ExportState {
   setStartDate: (date: string) => void;
   setEndDate: (date: string) => void;
   setFormat: (format: ExportFormat) => void;
+  setTagFilter: (filter: TagFilter | null) => void;
 
   // Export operations
   exportData: () => Promise<ExportResult>;
@@ -57,6 +60,7 @@ export const useExportStore = create<ExportState>((set, get) => {
     startDate: defaultRange.startDate,
     endDate: defaultRange.endDate,
     format: 'csv',
+    tagFilter: null,
     isExporting: false,
     isSharing: false,
     exportProgress: 0,
@@ -79,6 +83,10 @@ export const useExportStore = create<ExportState>((set, get) => {
       set({ format, preview: null });
     },
 
+    setTagFilter: (filter: TagFilter | null) => {
+      set({ tagFilter: filter, preview: null });
+    },
+
     // Export data
     exportData: async (): Promise<ExportResult> => {
       const state = get();
@@ -89,6 +97,7 @@ export const useExportStore = create<ExportState>((set, get) => {
           startDate: state.startDate,
           endDate: state.endDate,
           format: state.format,
+          tagFilter: state.tagFilter,
         };
 
         set({ exportProgress: 30 });
@@ -154,6 +163,7 @@ export const useExportStore = create<ExportState>((set, get) => {
           startDate: state.startDate,
           endDate: state.endDate,
           format: state.format,
+          tagFilter: state.tagFilter,
         };
 
         const preview = await getExportPreview(options, 10);
@@ -182,6 +192,7 @@ export const useExportStore = create<ExportState>((set, get) => {
         startDate: defaultRange.startDate,
         endDate: defaultRange.endDate,
         format: 'csv',
+        tagFilter: null,
         isExporting: false,
         isSharing: false,
         exportProgress: 0,
