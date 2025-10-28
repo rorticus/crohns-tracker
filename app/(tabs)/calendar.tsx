@@ -1,8 +1,9 @@
 import { CalendarComponent } from "@/components/Calendar/CalendarComponent";
 import { DayTagManager } from "@/components/DayTags/DayTagManager";
 import { Button } from "@/components/UI/Button";
+import { useAppStateRefresh } from "@/hooks/useAppStateRefresh";
 import { useEntryOperations, useEntryStore } from "@/stores/entryStore";
-import { formatDateShort } from "@/utils/dateUtils";
+import { formatDateShort, getCurrentDate } from "@/utils/dateUtils";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -21,6 +22,17 @@ export default function CalendarScreen() {
     useEntryStore();
   const { createTodaysBowelMovement } = useEntryOperations();
   const [tagManagerVisible, setTagManagerVisible] = useState(false);
+
+  // Refresh to today's date when app comes back to foreground after 1 hour
+  useAppStateRefresh({
+    onForeground: () => {
+      const today = getCurrentDate();
+      if (selectedDate !== today) {
+        setSelectedDate(today);
+      }
+    },
+    inactivityThresholdMs: 60 * 60 * 1000, // 1 hour
+  });
 
   const handleQuickBowelMovement = async () => {
     try {
