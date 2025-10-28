@@ -23,6 +23,11 @@ import {
   type TagFilter,
 } from '../../types/dayTag';
 
+// Constants
+const MAX_SUGGESTIONS = 5;
+const MAX_QUICK_ADD_TAGS = 10;
+const SUGGESTION_HIDE_DELAY = 200; // milliseconds
+
 interface DayTagFilterPickerProps {
   filter: TagFilter | null;
   onFilterChange: (filter: TagFilter | null) => void;
@@ -56,7 +61,7 @@ export function DayTagFilterPicker({
           !isAlreadySelected && tag.displayName.toLowerCase().includes(lowerInput)
         );
       })
-      .slice(0, 5); // Limit to 5 suggestions
+      .slice(0, MAX_SUGGESTIONS);
   }, [inputValue, availableTags, selectedTags]);
 
   // Available tags that aren't already selected (for quick add)
@@ -68,7 +73,7 @@ export function DayTagFilterPicker({
         );
         return !isAlreadySelected;
       })
-      .slice(0, 10); // Show top 10 by usage
+      .slice(0, MAX_QUICK_ADD_TAGS);
   }, [availableTags, selectedTags]);
 
   const handleAddTag = (tagName: string) => {
@@ -190,7 +195,7 @@ export function DayTagFilterPicker({
         autoCorrect={false}
         returnKeyType="done"
         onFocus={() => setShowSuggestions(inputValue.length > 0)}
-        onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+        onBlur={() => setTimeout(() => setShowSuggestions(false), SUGGESTION_HIDE_DELAY)}
       />
 
       {/* Autocomplete suggestions */}
