@@ -10,7 +10,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { TimelineComponent, TimelineEntry } from '@/components/Timeline/TimelineComponent';
 import { EmptyState } from '@/components/Timeline/EmptyState';
+import { useAppStateRefresh } from '@/hooks/useAppStateRefresh';
 import { useEntryStore } from '@/stores/entryStore';
+import { getCurrentDate } from '@/utils/dateUtils';
 
 interface TimelineScreenProps {
   selectedDate?: string;
@@ -26,16 +28,22 @@ export default function TimelineScreen({ selectedDate }: TimelineScreenProps) {
     deleteEntry,
   } = useEntryStore();
 
-  const getTodayString = () => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
+  const getTodayString = () => getCurrentDate();
+  
   const [currentDate, setCurrentDate] = useState(
     selectedDate || getTodayString()
   );
+
+  // Refresh to today's date when app comes back to foreground after 1 hour
+  useAppStateRefresh({
+    onForeground: () => {
+      const today = getTodayString();
+      if (currentDate !== today) {
+        setCurrentDate(today);
+      }
+    },
+    inactivityThresholdMs: 60 * 60 * 1000, // 1 hour
+  });
 
   useEffect(() => {
     fetchEntriesByDate(currentDate);
