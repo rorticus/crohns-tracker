@@ -36,12 +36,13 @@ export const useAppStateRefresh = ({
         if (timeSinceLastActive >= inactivityThresholdMs) {
           onForeground?.();
         }
-
-        lastActiveTime.current = now;
       }
 
-      // Update app state when going to background
-      if (nextAppState.match(/inactive|background/)) {
+      // Update last active time when going to background to track when user left
+      if (
+        appState.current === 'active' &&
+        nextAppState.match(/inactive|background/)
+      ) {
         lastActiveTime.current = Date.now();
       }
 
