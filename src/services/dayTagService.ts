@@ -8,7 +8,7 @@
  * Tests: __tests__/services/dayTagService.test.ts
  */
 
-import db, { dayTags, dayTagAssociations, entries } from '../db/client';
+import db, { dayTags, dayTagAssociations, entries, bowelMovements, notes } from '../db/client';
 import { eq, and, inArray, desc, asc, gte, lte, sql } from 'drizzle-orm';
 import { normalizeTagName as normalize, validateTagName as validate } from '../utils/tagUtils';
 import {
@@ -286,10 +286,16 @@ export async function getEntriesByTag(
     return [];
   }
 
-  // Get entries for those dates
-  const entriesWithTag = await db
-    .select()
+  // Get entries for those dates with joined data (same pattern as getEntriesForDateRange)
+  const result = await db
+    .select({
+      entry: entries,
+      bowelMovement: bowelMovements,
+      note: notes,
+    })
     .from(entries)
+    .leftJoin(bowelMovements, eq(entries.id, bowelMovements.entryId))
+    .leftJoin(notes, eq(entries.id, notes.entryId))
     .where(
       and(
         inArray(entries.date, datesWithTag),
@@ -298,6 +304,44 @@ export async function getEntriesByTag(
       )
     )
     .orderBy(desc(entries.timestamp));
+
+  // Transform to CombinedEntry format
+  const entriesWithTag = result.map((row) => {
+    const baseEntry = {
+      id: row.entry.id,
+      type: row.entry.type,
+      date: row.entry.date,
+      time: row.entry.time,
+      timestamp: row.entry.timestamp,
+      createdAt: row.entry.createdAt,
+      updatedAt: row.entry.updatedAt,
+    };
+
+    if (row.entry.type === 'bowel_movement' && row.bowelMovement) {
+      return {
+        ...baseEntry,
+        type: 'bowel_movement' as const,
+        bowelMovement: {
+          consistency: row.bowelMovement.consistency,
+          urgency: row.bowelMovement.urgency,
+          notes: row.bowelMovement.notes || undefined,
+        },
+      };
+    } else if (row.entry.type === 'note' && row.note) {
+      return {
+        ...baseEntry,
+        type: 'note' as const,
+        note: {
+          category: row.note.category,
+          content: row.note.content,
+          tags: row.note.tags || undefined,
+        },
+      };
+    }
+
+    // Fallback for invalid entry structure
+    return baseEntry;
+  });
 
   // Attach day tags to each entry
   return attachDayTagsToEntries(entriesWithTag);
@@ -363,10 +407,16 @@ export async function getEntriesByTags(
     return [];
   }
 
-  // Get entries for those dates
-  const entriesWithTags = await db
-    .select()
+  // Get entries for those dates with joined data (same pattern as getEntriesForDateRange)
+  const result = await db
+    .select({
+      entry: entries,
+      bowelMovement: bowelMovements,
+      note: notes,
+    })
     .from(entries)
+    .leftJoin(bowelMovements, eq(entries.id, bowelMovements.entryId))
+    .leftJoin(notes, eq(entries.id, notes.entryId))
     .where(
       and(
         inArray(entries.date, datesWithTags),
@@ -375,6 +425,44 @@ export async function getEntriesByTags(
       )
     )
     .orderBy(desc(entries.timestamp));
+
+  // Transform to CombinedEntry format
+  const entriesWithTags = result.map((row) => {
+    const baseEntry = {
+      id: row.entry.id,
+      type: row.entry.type,
+      date: row.entry.date,
+      time: row.entry.time,
+      timestamp: row.entry.timestamp,
+      createdAt: row.entry.createdAt,
+      updatedAt: row.entry.updatedAt,
+    };
+
+    if (row.entry.type === 'bowel_movement' && row.bowelMovement) {
+      return {
+        ...baseEntry,
+        type: 'bowel_movement' as const,
+        bowelMovement: {
+          consistency: row.bowelMovement.consistency,
+          urgency: row.bowelMovement.urgency,
+          notes: row.bowelMovement.notes || undefined,
+        },
+      };
+    } else if (row.entry.type === 'note' && row.note) {
+      return {
+        ...baseEntry,
+        type: 'note' as const,
+        note: {
+          category: row.note.category,
+          content: row.note.content,
+          tags: row.note.tags || undefined,
+        },
+      };
+    }
+
+    // Fallback for invalid entry structure
+    return baseEntry;
+  });
 
   // Attach day tags to each entry
   return attachDayTagsToEntries(entriesWithTags);
