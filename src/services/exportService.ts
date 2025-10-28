@@ -2,6 +2,8 @@ import { CombinedEntry } from "@/types/entry";
 import { File, Paths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import { getEntriesForDateRange } from "./entryService";
+import { TagFilter } from "@/types/dayTag";
+import { getEntriesByTags } from "./dayTagService";
 
 export type ExportFormat = "csv" | "txt";
 
@@ -10,6 +12,7 @@ export interface ExportOptions {
   endDate: string;
   format: ExportFormat;
   includeNotes?: boolean;
+  tagFilter?: TagFilter | null;
 }
 
 export interface ExportResult {
@@ -149,16 +152,30 @@ export async function exportData(
   options: ExportOptions
 ): Promise<ExportResult> {
   try {
-    // Fetch entries for the date range
-    const entries = await getEntriesForDateRange(
-      options.startDate,
-      options.endDate
-    );
+    // Fetch entries for the date range, optionally filtered by tags
+    let entries: CombinedEntry[];
+    
+    if (options.tagFilter && options.tagFilter.tags.length > 0) {
+      // Use tag filtering if tags are specified
+      entries = await getEntriesByTags(
+        options.tagFilter,
+        options.startDate,
+        options.endDate
+      );
+    } else {
+      // Use standard date range query
+      entries = await getEntriesForDateRange(
+        options.startDate,
+        options.endDate
+      );
+    }
 
     if (entries.length === 0) {
       return {
         success: false,
-        error: "No entries found for the selected date range",
+        error: options.tagFilter && options.tagFilter.tags.length > 0
+          ? "No entries found for the selected date range and tags"
+          : "No entries found for the selected date range",
         entriesCount: 0,
       };
     }
@@ -249,10 +266,23 @@ export async function getExportPreview(
   maxLines: number = 10
 ): Promise<string> {
   try {
-    const entries = await getEntriesForDateRange(
-      options.startDate,
-      options.endDate
-    );
+    // Fetch entries for the date range, optionally filtered by tags
+    let entries: CombinedEntry[];
+    
+    if (options.tagFilter && options.tagFilter.tags.length > 0) {
+      // Use tag filtering if tags are specified
+      entries = await getEntriesByTags(
+        options.tagFilter,
+        options.startDate,
+        options.endDate
+      );
+    } else {
+      // Use standard date range query
+      entries = await getEntriesForDateRange(
+        options.startDate,
+        options.endDate
+      );
+    }
 
     const limitedEntries = entries.slice(0, maxLines);
 

@@ -9,8 +9,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useExportStore } from '@/stores/exportStore';
+import { useDayTagStore } from '@/stores/dayTagStore';
 import { DateRangePicker } from '@/components/Forms/DateRangePicker';
 import { Button } from '@/components/UI/Button';
+import { DayTagFilterPicker } from '@/components/Export/DayTagFilterPicker';
 import { ExportFormat } from '@/services/exportService';
 
 export default function ExportScreen() {
@@ -18,6 +20,7 @@ export default function ExportScreen() {
     startDate,
     endDate,
     format,
+    tagFilter,
     isExporting,
     isSharing,
     lastExportPath,
@@ -28,18 +31,27 @@ export default function ExportScreen() {
     setStartDate,
     setEndDate,
     setFormat,
+    setTagFilter,
     exportData,
     shareExport,
     loadPreview,
     clearError,
   } = useExportStore();
 
+  const {
+    allTags,
+    loadAllTags,
+  } = useDayTagStore();
+
   useEffect(() => {
+    // Load all tags when component mounts
+    loadAllTags();
+    
     // Clear any previous errors when component mounts
     return () => {
       clearError();
     };
-  }, [clearError]);
+  }, [loadAllTags, clearError]);
 
   const handleExport = async () => {
     const result = await exportData();
@@ -121,6 +133,18 @@ export default function ExportScreen() {
             endDate={endDate}
             onStartDateChange={setStartDate}
             onEndDateChange={setEndDate}
+          />
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Filter by Day Tags (Optional)</Text>
+          <Text style={styles.sectionSubtitle}>
+            Export only entries from days with specific tags
+          </Text>
+          <DayTagFilterPicker
+            filter={tagFilter}
+            onFilterChange={setTagFilter}
+            availableTags={allTags}
           />
         </View>
 
@@ -218,6 +242,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#1C1C1E',
     marginBottom: 16,
+  },
+  sectionSubtitle: {
+    fontSize: 14,
+    color: '#8E8E93',
+    marginBottom: 12,
+    lineHeight: 20,
   },
   formatContainer: {
     gap: 12,
