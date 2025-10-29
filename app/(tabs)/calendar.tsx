@@ -35,6 +35,17 @@ export default function CalendarScreen() {
     inactivityThresholdMs: 60 * 60 * 1000, // 1 hour
   });
 
+  const getEntryIcon = (entry: typeof entries[0]): string => {
+    if (entry.type === "bowel_movement") {
+      return "🚽";
+    }
+    if (entry.type === "note" && entry.note) {
+      const categoryConfig = NOTE_CATEGORY_CONFIG[entry.note.category];
+      return categoryConfig?.icon || "📝";
+    }
+    return "📝";
+  };
+
   const handleQuickBowelMovement = async () => {
     try {
       await createTodaysBowelMovement(4, 2, "Quick entry from calendar");
@@ -158,11 +169,7 @@ export default function CalendarScreen() {
                 <Text style={styles.entryTime}>{entry.time}</Text>
                 <View style={styles.entryContent}>
                   <Text style={styles.entryIcon}>
-                    {entry.type === "bowel_movement" 
-                      ? "🚽" 
-                      : entry.note 
-                        ? NOTE_CATEGORY_CONFIG[entry.note.category].icon 
-                        : "📝"}
+                    {getEntryIcon(entry)}
                   </Text>
                   {entry.type === "bowel_movement" && entry.bowelMovement && (
                     <Text style={styles.entryDetails}>
