@@ -3,6 +3,7 @@ import { DayTagManager } from "@/components/DayTags/DayTagManager";
 import { Button } from "@/components/UI/Button";
 import { useAppStateRefresh } from "@/hooks/useAppStateRefresh";
 import { useEntryOperations, useEntryStore } from "@/stores/entryStore";
+import { NOTE_CATEGORY_CONFIG } from "@/utils/constants";
 import { formatDateShort, getCurrentDate } from "@/utils/dateUtils";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
@@ -157,7 +158,11 @@ export default function CalendarScreen() {
                 <Text style={styles.entryTime}>{entry.time}</Text>
                 <View style={styles.entryContent}>
                   <Text style={styles.entryIcon}>
-                    {entry.type === "bowel_movement" ? "🚽" : "📝"}
+                    {entry.type === "bowel_movement" 
+                      ? "🚽" 
+                      : entry.note 
+                        ? NOTE_CATEGORY_CONFIG[entry.note.category].icon 
+                        : "📝"}
                   </Text>
                   {entry.type === "bowel_movement" && entry.bowelMovement && (
                     <Text style={styles.entryDetails}>
