@@ -9,6 +9,7 @@ import { Calendar as RNCalendar, DateData, MarkedDates } from 'react-native-cale
 import { CombinedEntry } from '@/types/entry';
 import { useDayTagStore } from '../../stores/dayTagStore';
 import { getCurrentDate } from '@/utils/dateUtils';
+import { useAppStateRefresh } from '@/hooks/useAppStateRefresh';
 
 export interface CalendarComponentProps {
   selectedDate: string;
@@ -28,17 +29,16 @@ export const CalendarComponent: React.FC<CalendarComponentProps> = ({
   // Track the current date and update it when it changes
   const [today, setToday] = useState(() => getCurrentDate());
 
-  // Update today when the date changes (check every 30 seconds for better responsiveness)
-  useEffect(() => {
-    const interval = setInterval(() => {
+  // Update today when app comes to foreground (e.g., when date might have changed)
+  useAppStateRefresh({
+    onForeground: () => {
       setToday((currentToday) => {
         const newToday = getCurrentDate();
         return newToday !== currentToday ? newToday : currentToday;
       });
-    }, 30000); // Check every 30 seconds
-
-    return () => clearInterval(interval);
-  }, []); // Empty dependency array - interval runs for component lifetime
+    },
+    inactivityThresholdMs: 0, // Always check on foreground, no threshold
+  });
 
   // Load tagged dates for current month when component mounts or month changes
   useEffect(() => {
