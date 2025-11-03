@@ -3,11 +3,12 @@
  * Displays a calendar with entry indicators and day tag indicators
  */
 
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import { Calendar as RNCalendar, DateData, MarkedDates } from 'react-native-calendars';
 import { CombinedEntry } from '@/types/entry';
 import { useDayTagStore } from '../../stores/dayTagStore';
+import { getCurrentDate } from '@/utils/dateUtils';
 
 export interface CalendarComponentProps {
   selectedDate: string;
@@ -23,6 +24,21 @@ export const CalendarComponent: React.FC<CalendarComponentProps> = ({
   testID = 'calendar-component',
 }) => {
   const { taggedDatesInMonth, loadTaggedDatesInMonth } = useDayTagStore();
+  
+  // Track the current date and update it when it changes
+  const [today, setToday] = useState(() => getCurrentDate());
+
+  // Update today when the date changes (check every minute)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const newToday = getCurrentDate();
+      if (newToday !== today) {
+        setToday(newToday);
+      }
+    }, 60000); // Check every minute
+
+    return () => clearInterval(interval);
+  }, [today]);
 
   // Load tagged dates for current month when component mounts or month changes
   useEffect(() => {
@@ -90,15 +106,6 @@ export const CalendarComponent: React.FC<CalendarComponentProps> = ({
   const handleDayPress = (day: DateData) => {
     onDateSelect(day.dateString);
   };
-
-  // Get today's date in local timezone (not UTC)
-  const today = (() => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  })();
 
   return (
     <View style={styles.container} testID={testID}>
