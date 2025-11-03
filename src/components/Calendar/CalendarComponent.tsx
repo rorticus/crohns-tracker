@@ -3,7 +3,7 @@
  * Displays a calendar with entry indicators and day tag indicators
  */
 
-import React, { useMemo, useEffect, useState, useRef } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import { Calendar as RNCalendar, DateData, MarkedDates } from 'react-native-calendars';
 import { CombinedEntry } from '@/types/entry';
@@ -27,21 +27,15 @@ export const CalendarComponent: React.FC<CalendarComponentProps> = ({
   
   // Track the current date and update it when it changes
   const [today, setToday] = useState(() => getCurrentDate());
-  const todayRef = useRef(today);
-  
-  // Keep ref in sync with state
-  useEffect(() => {
-    todayRef.current = today;
-  }, [today]);
 
-  // Update today when the date changes (check every minute)
+  // Update today when the date changes (check every 30 seconds for better responsiveness)
   useEffect(() => {
     const interval = setInterval(() => {
-      const newToday = getCurrentDate();
-      if (newToday !== todayRef.current) {
-        setToday(newToday);
-      }
-    }, 60000); // Check every minute
+      setToday((currentToday) => {
+        const newToday = getCurrentDate();
+        return newToday !== currentToday ? newToday : currentToday;
+      });
+    }, 30000); // Check every 30 seconds
 
     return () => clearInterval(interval);
   }, []); // Empty dependency array - interval runs for component lifetime
