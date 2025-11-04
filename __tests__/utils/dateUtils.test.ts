@@ -51,9 +51,10 @@ describe('dateUtils', () => {
   });
 
   describe('getCurrentTime', () => {
-    it('should return current time in HH:MM format', () => {
+    it('should return current time in HH:MM format with padded hours', () => {
       const time = getCurrentTime();
-      expect(time).toMatch(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/);
+      // getCurrentTime always returns padded hours (e.g., '09:30' not '9:30')
+      expect(time).toMatch(/^[0-2][0-9]:[0-5][0-9]$/);
     });
 
     it('should return local time, not UTC time', () => {
@@ -148,7 +149,10 @@ describe('dateUtils', () => {
       expect(isValidTimeString('14:30')).toBe(true);
       expect(isValidTimeString('00:00')).toBe(true);
       expect(isValidTimeString('23:59')).toBe(true);
-      expect(isValidTimeString('9:30')).toBe(true); // Single digit hour
+      // Note: getCurrentTime() returns padded hours (e.g., '09:30'),
+      // but the validation accepts both padded and unpadded formats
+      expect(isValidTimeString('9:30')).toBe(true); // Single digit hour is valid
+      expect(isValidTimeString('09:30')).toBe(true); // Padded hour is valid
     });
 
     it('should reject invalid time formats', () => {
