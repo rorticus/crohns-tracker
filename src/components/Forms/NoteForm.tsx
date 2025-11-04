@@ -19,6 +19,7 @@ import { DatePicker } from '@/components/UI/DatePicker';
 import { TimePicker } from '@/components/UI/TimePicker';
 import { CreateNoteInput } from '@/types/entry';
 import { validateNoteInput } from '@/services/validationService';
+import { getCurrentDate, getCurrentTime } from '@/utils/dateUtils';
 
 interface NoteFormProps {
   initialData?: Partial<CreateNoteInput>;
@@ -41,9 +42,8 @@ export function NoteForm({
   const router = useRouter();
   const { createNote, isCreating } = useEntryStore();
 
-  const now = new Date();
-  const currentDate = now.toISOString().split('T')[0];
-  const currentTime = now.toTimeString().split(' ')[0].substring(0, 5);
+  const currentDate = getCurrentDate();
+  const currentTime = getCurrentTime();
 
   const {
     control,
