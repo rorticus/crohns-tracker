@@ -19,6 +19,7 @@ import { DatePicker } from '@/components/UI/DatePicker';
 import { TimePicker } from '@/components/UI/TimePicker';
 import { CreateBowelMovementInput } from '@/types/entry';
 import { validateBowelMovementInput } from '@/services/validationService';
+import { getCurrentDate, getCurrentTime } from '@/utils/dateUtils';
 
 interface BowelMovementFormProps {
   initialData?: Partial<CreateBowelMovementInput>;
@@ -51,9 +52,8 @@ export function BowelMovementForm({
   const router = useRouter();
   const { createBowelMovement, isCreating } = useEntryStore();
 
-  const now = new Date();
-  const currentDate = now.toISOString().split('T')[0];
-  const currentTime = now.toTimeString().split(' ')[0].substring(0, 5);
+  const currentDate = getCurrentDate();
+  const currentTime = getCurrentTime();
 
   const {
     control,
