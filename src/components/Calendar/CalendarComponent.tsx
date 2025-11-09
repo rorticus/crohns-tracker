@@ -28,6 +28,20 @@ export const CalendarComponent: React.FC<CalendarComponentProps> = ({
   
   // Track the current date and update it when it changes
   const [today, setToday] = useState(() => getCurrentDate());
+  
+  // Track the currently displayed month
+  const [displayedMonth, setDisplayedMonth] = useState<{ year: number; month: number }>(() => {
+    const date = selectedDate
+      ? (() => {
+          const [year, month, day] = selectedDate.split('-').map(Number);
+          return new Date(year, month - 1, day);
+        })()
+      : new Date();
+    return {
+      year: date.getFullYear(),
+      month: date.getMonth() + 1, // getMonth() returns 0-11
+    };
+  });
 
   // Update today when app comes to foreground (e.g., when date might have changed)
   useAppStateRefresh({
@@ -40,18 +54,10 @@ export const CalendarComponent: React.FC<CalendarComponentProps> = ({
     inactivityThresholdMs: 0, // Always check on foreground, no threshold
   });
 
-  // Load tagged dates for current month when component mounts or month changes
+  // Load tagged dates for current month when displayedMonth changes
   useEffect(() => {
-    const date = selectedDate
-      ? (() => {
-          const [year, month, day] = selectedDate.split('-').map(Number);
-          return new Date(year, month - 1, day);
-        })()
-      : new Date();
-    const year = date.getFullYear();
-    const month = date.getMonth() + 1; // getMonth() returns 0-11
-    loadTaggedDatesInMonth(year, month);
-  }, [selectedDate, loadTaggedDatesInMonth]);
+    loadTaggedDatesInMonth(displayedMonth.year, displayedMonth.month);
+  }, [displayedMonth, loadTaggedDatesInMonth]);
 
   // Create marked dates object from entries and tags
   const markedDates = useMemo<MarkedDates>(() => {
@@ -107,11 +113,20 @@ export const CalendarComponent: React.FC<CalendarComponentProps> = ({
     onDateSelect(day.dateString);
   };
 
+  const handleMonthChange = (date: DateData) => {
+    const newMonth = {
+      year: date.year,
+      month: date.month,
+    };
+    setDisplayedMonth(newMonth);
+  };
+
   return (
     <View style={styles.container} testID={testID}>
       <RNCalendar
         current={selectedDate || today}
         onDayPress={handleDayPress}
+        onMonthChange={handleMonthChange}
         markedDates={markedDates}
         maxDate={today}
         theme={{
