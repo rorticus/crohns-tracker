@@ -73,7 +73,16 @@ jobs:
           fi
           
           # Get the artifact URL
-          ARTIFACT_URL=$(eas build:view $BUILD_ID --json --non-interactive | jq -r '.artifacts.applicationArchiveUrl // .artifacts.buildUrl')
+          ARTIFACT_URL=$(eas build:view $BUILD_ID --json --non-interactive | jq -r '.artifacts.applicationArchiveUrl // empty')
+          
+          if [ -z "$ARTIFACT_URL" ] || [ "$ARTIFACT_URL" = "null" ]; then
+            echo "Error: Could not retrieve application archive URL"
+            echo "Build response:"
+            eas build:view $BUILD_ID --json --non-interactive | jq '.artifacts'
+            exit 1
+          fi
+          
+          echo "Artifact URL: $ARTIFACT_URL"
           echo "artifact_url=$ARTIFACT_URL" >> $GITHUB_OUTPUT
           echo "build_id=$BUILD_ID" >> $GITHUB_OUTPUT
         env:
@@ -81,8 +90,22 @@ jobs:
 
       - name: Download IPA
         run: |
+          if [ -z "${{ steps.build.outputs.artifact_url }}" ]; then
+            echo "Error: No artifact URL available"
+            exit 1
+          fi
+          
+          echo "Downloading IPA from: ${{ steps.build.outputs.artifact_url }}"
           curl -L -o app.ipa "${{ steps.build.outputs.artifact_url }}"
+          
+          # Verify the file was downloaded and is not empty
+          if [ ! -s app.ipa ]; then
+            echo "Error: Downloaded file is empty or doesn't exist"
+            exit 1
+          fi
+          
           ls -lh app.ipa
+          file app.ipa
 
       - name: Upload to App Store Connect
         run: |
