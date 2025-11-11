@@ -3,13 +3,14 @@
  * Displays a calendar with entry indicators and day tag indicators
  */
 
-import React, { useMemo, useEffect, useState } from 'react';
+import React, { useMemo, useEffect, useState, useCallback } from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import { Calendar as RNCalendar, DateData, MarkedDates } from 'react-native-calendars';
 import { CombinedEntry } from '@/types/entry';
 import { useDayTagStore } from '../../stores/dayTagStore';
 import { getCurrentDate } from '@/utils/dateUtils';
 import { useAppStateRefresh } from '@/hooks/useAppStateRefresh';
+import { getEntriesForDateRange } from '@/services/entryService';
 
 export interface CalendarComponentProps {
   selectedDate: string;
@@ -29,6 +30,9 @@ export const CalendarComponent: React.FC<CalendarComponentProps> = ({
   // Track the current date and update it when it changes
   const [today, setToday] = useState(() => getCurrentDate());
   
+  // Track entries for the displayed month
+  const [monthEntries, setMonthEntries] = useState<CombinedEntry[]>([]);
+  
   // Track the currently displayed month
   const [displayedMonth, setDisplayedMonth] = useState<{ year: number; month: number }>(() => {
     const date = selectedDate
@@ -43,28 +47,51 @@ export const CalendarComponent: React.FC<CalendarComponentProps> = ({
     };
   });
 
-  // Update today when app comes to foreground (e.g., when date might have changed)
+  // Load entries for the displayed month
+  const loadMonthEntries = useCallback(async (year: number, month: number) => {
+    try {
+      // Calculate first and last day of the month
+      const lastDay = new Date(year, month, 0);
+      
+      const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
+      const endDate = `${year}-${String(month).padStart(2, '0')}-${String(lastDay.getDate()).padStart(2, '0')}`;
+      
+      const entries = await getEntriesForDateRange(startDate, endDate);
+      setMonthEntries(entries);
+    } catch (error) {
+      console.error('Failed to load month entries:', error);
+      setMonthEntries([]);
+    }
+  }, []);
+
+  // Update today when app comes to foreground and reload data
   useAppStateRefresh({
     onForeground: () => {
-      setToday((currentToday) => {
-        const newToday = getCurrentDate();
-        return newToday !== currentToday ? newToday : currentToday;
-      });
+      const newToday = getCurrentDate();
+      const todayChanged = newToday !== today;
+      
+      if (todayChanged) {
+        setToday(newToday);
+        // Reload entries and tags for the month when date changes
+        loadMonthEntries(displayedMonth.year, displayedMonth.month);
+        loadTaggedDatesInMonth(displayedMonth.year, displayedMonth.month);
+      }
     },
     inactivityThresholdMs: 0, // Always check on foreground, no threshold
   });
 
-  // Load tagged dates for current month when displayedMonth changes
+  // Load tagged dates and entries for current month when displayedMonth changes
   useEffect(() => {
     loadTaggedDatesInMonth(displayedMonth.year, displayedMonth.month);
-  }, [displayedMonth, loadTaggedDatesInMonth]);
+    loadMonthEntries(displayedMonth.year, displayedMonth.month);
+  }, [displayedMonth, loadTaggedDatesInMonth, loadMonthEntries]);
 
   // Create marked dates object from entries and tags
   const markedDates = useMemo<MarkedDates>(() => {
     const marked: MarkedDates = {};
 
-    // Group entries by date
-    const entriesByDate = entries.reduce((acc, entry) => {
+    // Group month entries by date
+    const entriesByDate = monthEntries.reduce((acc, entry) => {
       if (!acc[entry.date]) {
         acc[entry.date] = [];
       }
@@ -107,7 +134,7 @@ export const CalendarComponent: React.FC<CalendarComponentProps> = ({
     }
 
     return marked;
-  }, [entries, taggedDatesInMonth, selectedDate]);
+  }, [monthEntries, taggedDatesInMonth, selectedDate]);
 
   const handleDayPress = (day: DateData) => {
     onDateSelect(day.dateString);
