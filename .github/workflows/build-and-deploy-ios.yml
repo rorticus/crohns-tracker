@@ -10,6 +10,9 @@ jobs:
   build-and-deploy:
     name: Build iOS app and upload to App Store Connect
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
