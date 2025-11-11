@@ -1,0 +1,102 @@
+name: Build and Deploy iOS App
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    name: Build iOS app and upload to App Store Connect
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup Expo and EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Build iOS app with EAS
+        run: |
+          eas build --platform ios --profile production --non-interactive --no-wait
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Wait for build to complete and get artifact
+        id: build
+        run: |
+          # Wait a moment for the build to be registered
+          sleep 10
+          
+          # Get the latest build ID
+          BUILD_ID=$(eas build:list --platform ios --limit 1 --json --non-interactive | jq -r '.[0].id')
+          echo "Build ID: $BUILD_ID"
+          
+          # Set a maximum wait time (45 minutes)
+          MAX_WAIT=2700
+          ELAPSED=0
+          
+          # Poll for build completion
+          while [ $ELAPSED -lt $MAX_WAIT ]; do
+            STATUS=$(eas build:view $BUILD_ID --json --non-interactive | jq -r '.status')
+            echo "Build status: $STATUS (elapsed: ${ELAPSED}s)"
+            
+            if [ "$STATUS" = "finished" ]; then
+              echo "Build completed successfully!"
+              break
+            elif [ "$STATUS" = "errored" ] || [ "$STATUS" = "canceled" ]; then
+              echo "Build failed with status: $STATUS"
+              exit 1
+            fi
+            
+            echo "Waiting for build to complete..."
+            sleep 60
+            ELAPSED=$((ELAPSED + 60))
+          done
+          
+          if [ $ELAPSED -ge $MAX_WAIT ]; then
+            echo "Build timed out after ${MAX_WAIT} seconds"
+            exit 1
+          fi
+          
+          # Get the artifact URL
+          ARTIFACT_URL=$(eas build:view $BUILD_ID --json --non-interactive | jq -r '.artifacts.buildUrl')
+          echo "artifact_url=$ARTIFACT_URL" >> $GITHUB_OUTPUT
+          echo "build_id=$BUILD_ID" >> $GITHUB_OUTPUT
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Download IPA
+        run: |
+          curl -L -o app.ipa "${{ steps.build.outputs.artifact_url }}"
+          ls -lh app.ipa
+
+      - name: Upload to App Store Connect
+        run: |
+          # Install Transporter CLI if needed (alternative to using xcrun altool)
+          # For App Store Connect upload, we'll use eas submit
+          eas submit --platform ios --latest --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EXPO_APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.EXPO_APPLE_APP_SPECIFIC_PASSWORD }}
+
+      - name: Upload IPA as artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ios-app-${{ github.sha }}
+          path: app.ipa
+          retention-days: 30
