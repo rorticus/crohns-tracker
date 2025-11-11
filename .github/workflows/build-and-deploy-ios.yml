@@ -38,7 +38,8 @@ jobs:
       - name: Wait for build to complete and get artifact
         id: build
         run: |
-          # Wait a moment for the build to be registered
+          # Wait a moment for the build to be registered in EAS
+          # This ensures the build appears in the list before we query for it
           sleep 10
           
           # Get the latest build ID
@@ -72,13 +73,15 @@ jobs:
             exit 1
           fi
           
-          # Get the artifact URL
-          ARTIFACT_URL=$(eas build:view $BUILD_ID --json --non-interactive | jq -r '.artifacts.applicationArchiveUrl // empty')
+          # Get the artifact URL - try multiple possible paths in the EAS response
+          # For iOS builds, the IPA can be at different paths depending on EAS version
+          BUILD_JSON=$(eas build:view $BUILD_ID --json --non-interactive)
+          ARTIFACT_URL=$(echo "$BUILD_JSON" | jq -r '.artifacts.applicationArchiveUrl // .artifacts.buildUrl // empty')
           
           if [ -z "$ARTIFACT_URL" ] || [ "$ARTIFACT_URL" = "null" ]; then
             echo "Error: Could not retrieve application archive URL"
-            echo "Build response:"
-            eas build:view $BUILD_ID --json --non-interactive | jq '.artifacts'
+            echo "Build artifacts:"
+            echo "$BUILD_JSON" | jq '.artifacts'
             exit 1
           fi
           
