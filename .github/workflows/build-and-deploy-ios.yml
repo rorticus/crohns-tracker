@@ -73,7 +73,7 @@ jobs:
           fi
           
           # Get the artifact URL
-          ARTIFACT_URL=$(eas build:view $BUILD_ID --json --non-interactive | jq -r '.artifacts.buildUrl')
+          ARTIFACT_URL=$(eas build:view $BUILD_ID --json --non-interactive | jq -r '.artifacts.applicationArchiveUrl // .artifacts.buildUrl')
           echo "artifact_url=$ARTIFACT_URL" >> $GITHUB_OUTPUT
           echo "build_id=$BUILD_ID" >> $GITHUB_OUTPUT
         env:
@@ -86,8 +86,7 @@ jobs:
 
       - name: Upload to App Store Connect
         run: |
-          # Install Transporter CLI if needed (alternative to using xcrun altool)
-          # For App Store Connect upload, we'll use eas submit
+          # Use eas submit to upload to App Store Connect
           eas submit --platform ios --latest --non-interactive
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
