@@ -65,18 +65,20 @@ export const CalendarComponent: React.FC<CalendarComponentProps> = ({
   }, []);
 
   // Update today when app comes to foreground and reload data
+  const handleForeground = useCallback(() => {
+    const newToday = getCurrentDate();
+    const todayChanged = newToday !== today;
+    
+    if (todayChanged) {
+      setToday(newToday);
+      // Reload entries and tags for the month when date changes
+      loadMonthEntries(displayedMonth.year, displayedMonth.month);
+      loadTaggedDatesInMonth(displayedMonth.year, displayedMonth.month);
+    }
+  }, [today, displayedMonth, loadMonthEntries, loadTaggedDatesInMonth]);
+
   useAppStateRefresh({
-    onForeground: () => {
-      const newToday = getCurrentDate();
-      const todayChanged = newToday !== today;
-      
-      if (todayChanged) {
-        setToday(newToday);
-        // Reload entries and tags for the month when date changes
-        loadMonthEntries(displayedMonth.year, displayedMonth.month);
-        loadTaggedDatesInMonth(displayedMonth.year, displayedMonth.month);
-      }
-    },
+    onForeground: handleForeground,
     inactivityThresholdMs: 0, // Always check on foreground, no threshold
   });
 
