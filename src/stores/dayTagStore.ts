@@ -13,8 +13,8 @@ import * as DayTagService from '../services/dayTagService';
 import {
   type DayTag,
   type TagFilter,
-  normalizeTagName,
 } from '../types/dayTag';
+import { normalizeTagName } from '../utils/tagUtils';
 
 /**
  * Day Tag Store State
