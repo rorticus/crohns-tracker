@@ -24,6 +24,9 @@ export interface DayTag {
   /** Original user-provided name (preserves capitalization) */
   displayName: string;
 
+  /** Optional description/notes about the tag (e.g., "X pills 3x daily") */
+  description?: string | null;
+
   /** ISO 8601 timestamp when tag was created */
   createdAt: string;
 
@@ -60,6 +63,9 @@ export interface DayTagAssociation {
 export interface CreateTagInput {
   /** User's preferred display name (preserves capitalization) */
   displayName: string;
+
+  /** Optional description/notes about the tag */
+  description?: string;
 }
 
 /**

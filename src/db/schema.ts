@@ -42,6 +42,7 @@ export const dayTags = sqliteTable('day_tags', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   name: text('name').notNull().unique(), // Normalized lowercase
   displayName: text('display_name').notNull(), // Original capitalization
+  description: text('description'), // Optional description/notes about the tag
   createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
   usageCount: integer('usage_count').default(0).notNull(),
 }, (table) => ({
