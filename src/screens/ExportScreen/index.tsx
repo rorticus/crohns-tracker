@@ -33,6 +33,7 @@ export default function ExportScreen() {
     setFormat,
     setTagFilter,
     exportData,
+    exportDayTags,
     shareExport,
     loadPreview,
     clearError,
@@ -73,6 +74,29 @@ export default function ExportScreen() {
       );
     } else {
       Alert.alert('Export Failed', result.error || 'Failed to export data');
+    }
+  };
+
+  const handleExportDayTags = async () => {
+    const result = await exportDayTags();
+
+    if (result.success && result.filePath) {
+      Alert.alert(
+        'Day Tags Export Successful',
+        `Exported ${result.entriesCount} day tags. Would you like to share the file?`,
+        [
+          {
+            text: 'Not Now',
+            style: 'cancel',
+          },
+          {
+            text: 'Share',
+            onPress: () => handleShare(result.filePath!),
+          },
+        ]
+      );
+    } else {
+      Alert.alert('Export Failed', result.error || 'Failed to export day tags');
     }
   };
 
@@ -202,6 +226,14 @@ export default function ExportScreen() {
           onPress={handleExport}
           loading={isExporting}
           disabled={isExporting || isSharing || isLoadingPreview}
+          style={styles.exportButton}
+        />
+        <Button
+          title={isExporting ? 'Exporting...' : 'Export Day Tags'}
+          onPress={handleExportDayTags}
+          loading={isExporting}
+          disabled={isExporting || isSharing || isLoadingPreview}
+          variant="outline"
           style={styles.exportButton}
         />
       </View>
@@ -351,6 +383,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F2F2F7',
     borderTopWidth: 1,
     borderTopColor: '#E5E5EA',
+    gap: 12,
   },
   exportButton: {
     width: '100%',

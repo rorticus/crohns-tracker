@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { exportData, shareExportFile, getExportPreview, ExportFormat, ExportOptions, ExportResult } from '@/services/exportService';
+import { exportData, shareExportFile, getExportPreview, exportDayTagsData, ExportFormat, ExportOptions, ExportResult } from '@/services/exportService';
 import { TagFilter } from '@/types/dayTag';
 
 interface ExportState {
@@ -31,6 +31,7 @@ interface ExportState {
 
   // Export operations
   exportData: () => Promise<ExportResult>;
+  exportDayTags: () => Promise<ExportResult>;
   shareExport: (filePath: string) => Promise<boolean>;
   loadPreview: () => Promise<void>;
   clearPreview: () => void;
@@ -122,6 +123,46 @@ export const useExportStore = create<ExportState>((set, get) => {
         return result;
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Export failed';
+        set({
+          error: errorMessage,
+          isExporting: false,
+          exportProgress: 0,
+        });
+        return {
+          success: false,
+          error: errorMessage,
+          entriesCount: 0,
+        };
+      }
+    },
+
+    // Export day tags
+    exportDayTags: async (): Promise<ExportResult> => {
+      set({ isExporting: true, error: null, exportProgress: 0 });
+
+      try {
+        set({ exportProgress: 30 });
+
+        const result = await exportDayTagsData();
+
+        set({ exportProgress: 100 });
+
+        if (result.success) {
+          set({
+            lastExportPath: result.filePath || null,
+            lastExportEntriesCount: result.entriesCount || 0,
+            isExporting: false,
+          });
+        } else {
+          set({
+            error: result.error || 'Day tags export failed',
+            isExporting: false,
+          });
+        }
+
+        return result;
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Day tags export failed';
         set({
           error: errorMessage,
           isExporting: false,
