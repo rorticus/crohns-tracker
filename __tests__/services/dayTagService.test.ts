@@ -106,7 +106,7 @@ describe('DayTagService', () => {
       expect(tag.description).toBeUndefined();
     });
 
-    it('updates description when existing tag has no description', async () => {
+    it('does not update description when tag already exists', async () => {
       const tag1 = await DayTagService.createTag({ displayName: 'Medicine' });
       expect(tag1.description).toBeUndefined();
 
@@ -116,7 +116,7 @@ describe('DayTagService', () => {
       });
 
       expect(tag2.id).toBe(tag1.id);
-      expect(tag2.description).toBe('New dosage');
+      expect(tag2.description).toBeUndefined(); // Description not updated
     });
   });
 
