@@ -2,7 +2,7 @@ import { CombinedEntry } from "@/types/entry";
 import { File, Paths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import { getEntriesForDateRange } from "./entryService";
-import { TagFilter, DayTag } from "@/types/dayTag";
+import { TagFilter } from "@/types/dayTag";
 import { getEntriesByTags, getAllTags, getTagsForDate } from "./dayTagService";
 
 export type ExportFormat = "csv" | "txt";
