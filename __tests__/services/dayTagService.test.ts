@@ -13,6 +13,7 @@ import db, { dayTags, dayTagAssociations } from '../../src/db/client';
 import { eq, and } from 'drizzle-orm';
 import {
   TagValidationError,
+  TagNotFoundError,
   MaxTagsExceededError,
   DuplicateAssociationError,
 } from '../../src/types/dayTag';
@@ -83,6 +84,69 @@ describe('DayTagService', () => {
       await expect(
         DayTagService.createTag({ displayName: 'Tag/with/slashes' })
       ).rejects.toThrow(TagValidationError);
+    });
+
+    // Test: createTag() supports optional description
+    it('creates a tag with description when provided', async () => {
+      const tag = await DayTagService.createTag({
+        displayName: 'New Medicine',
+        description: 'X pills 3x daily',
+      });
+
+      expect(tag).toBeDefined();
+      expect(tag.id).toBeGreaterThan(0);
+      expect(tag.displayName).toBe('New Medicine');
+      expect(tag.description).toBe('X pills 3x daily');
+    });
+
+    it('creates a tag without description when not provided', async () => {
+      const tag = await DayTagService.createTag({ displayName: 'Vacation' });
+
+      expect(tag).toBeDefined();
+      expect(tag.description).toBeUndefined();
+    });
+
+    it('updates description when existing tag has no description', async () => {
+      const tag1 = await DayTagService.createTag({ displayName: 'Medicine' });
+      expect(tag1.description).toBeUndefined();
+
+      const tag2 = await DayTagService.createTag({
+        displayName: 'Medicine',
+        description: 'New dosage',
+      });
+
+      expect(tag2.id).toBe(tag1.id);
+      expect(tag2.description).toBe('New dosage');
+    });
+  });
+
+  // Test: updateTagDescription
+  describe('updateTagDescription', () => {
+    it('updates tag description', async () => {
+      const tag = await DayTagService.createTag({ displayName: 'Test Tag' });
+      
+      const updated = await DayTagService.updateTagDescription(tag.id, 'New description');
+      
+      expect(updated.id).toBe(tag.id);
+      expect(updated.description).toBe('New description');
+    });
+
+    it('can clear tag description by setting to null', async () => {
+      const tag = await DayTagService.createTag({
+        displayName: 'Test Tag',
+        description: 'Initial description',
+      });
+      
+      const updated = await DayTagService.updateTagDescription(tag.id, null);
+      
+      expect(updated.id).toBe(tag.id);
+      expect(updated.description).toBeNull();
+    });
+
+    it('throws TagNotFoundError when tag does not exist', async () => {
+      await expect(
+        DayTagService.updateTagDescription(999, 'Description')
+      ).rejects.toThrow(TagNotFoundError);
     });
   });
 
