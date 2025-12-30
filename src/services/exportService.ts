@@ -23,6 +23,13 @@ export interface ExportResult {
 }
 
 /**
+ * Escape CSV cell value by wrapping in quotes and escaping internal quotes
+ */
+function escapeCsvCell(value: string): string {
+  return `"${value.replace(/"/g, '""')}"`;
+}
+
+/**
  * Export entries to CSV format with day tags
  */
 export async function exportToCSV(entries: CombinedEntry[]): Promise<string> {
@@ -41,13 +48,18 @@ export async function exportToCSV(entries: CombinedEntry[]): Promise<string> {
 
   // Get unique dates from entries to fetch day tags
   const uniqueDates = [...new Set(entries.map((e) => e.date))];
-  const dateTagsMap: Record<string, string> = {};
   
-  // Fetch day tags for all dates
-  for (const date of uniqueDates) {
+  // Fetch day tags for all dates concurrently
+  const dateTagsPromises = uniqueDates.map(async (date) => {
     const tags = await getTagsForDate(date);
-    dateTagsMap[date] = tags.map(tag => tag.displayName).join("; ");
-  }
+    return { date, tagsString: tags.map(tag => tag.displayName).join("; ") };
+  });
+  
+  const dateTagsResults = await Promise.all(dateTagsPromises);
+  const dateTagsMap: Record<string, string> = {};
+  dateTagsResults.forEach(({ date, tagsString }) => {
+    dateTagsMap[date] = tagsString;
+  });
 
   const rows = entries.map((entry) => {
     const dayTagsString = dateTagsMap[entry.date] || "";
@@ -84,7 +96,7 @@ export async function exportToCSV(entries: CombinedEntry[]): Promise<string> {
 
   const csvContent = [
     headers.join(","),
-    ...rows.map((row) => row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(",")),
+    ...rows.map((row) => row.map(escapeCsvCell).join(",")),
   ].join("\n");
 
   return csvContent;
@@ -338,7 +350,7 @@ export async function exportDayTagsToCSV(): Promise<string> {
 
   const csvContent = [
     headers.join(","),
-    ...rows.map((row) => row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(",")),
+    ...rows.map((row) => row.map(escapeCsvCell).join(",")),
   ].join("\n");
 
   return csvContent;
