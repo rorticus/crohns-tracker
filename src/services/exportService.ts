@@ -2,8 +2,8 @@ import { CombinedEntry } from "@/types/entry";
 import { File, Paths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import { getEntriesForDateRange } from "./entryService";
-import { TagFilter } from "@/types/dayTag";
-import { getEntriesByTags } from "./dayTagService";
+import { TagFilter, DayTag } from "@/types/dayTag";
+import { getEntriesByTags, getAllTags, getTagsForDate } from "./dayTagService";
 
 export type ExportFormat = "csv" | "txt";
 
@@ -23,7 +23,7 @@ export interface ExportResult {
 }
 
 /**
- * Export entries to CSV format
+ * Export entries to CSV format with day tags
  */
 export async function exportToCSV(entries: CombinedEntry[]): Promise<string> {
   const headers = [
@@ -36,9 +36,22 @@ export async function exportToCSV(entries: CombinedEntry[]): Promise<string> {
     "Content",
     "Notes",
     "Tags",
+    "Day Tags",
   ];
 
+  // Get unique dates from entries to fetch day tags
+  const uniqueDates = [...new Set(entries.map((e) => e.date))];
+  const dateTagsMap: Record<string, string> = {};
+  
+  // Fetch day tags for all dates
+  for (const date of uniqueDates) {
+    const tags = await getTagsForDate(date);
+    dateTagsMap[date] = tags.map(tag => tag.displayName).join("; ");
+  }
+
   const rows = entries.map((entry) => {
+    const dayTagsString = dateTagsMap[entry.date] || "";
+    
     if (entry.type === "bowel_movement" && entry.bowelMovement) {
       return [
         entry.date,
@@ -50,6 +63,7 @@ export async function exportToCSV(entries: CombinedEntry[]): Promise<string> {
         "",
         entry.bowelMovement.notes || "",
         "",
+        dayTagsString,
       ];
     } else if (entry.type === "note" && entry.note) {
       return [
@@ -62,6 +76,7 @@ export async function exportToCSV(entries: CombinedEntry[]): Promise<string> {
         entry.note.content,
         "",
         entry.note.tags || "",
+        dayTagsString,
       ];
     }
     return [];
@@ -69,7 +84,7 @@ export async function exportToCSV(entries: CombinedEntry[]): Promise<string> {
 
   const csvContent = [
     headers.join(","),
-    ...rows.map((row) => row.map((cell) => `"${cell}"`).join(",")),
+    ...rows.map((row) => row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(",")),
   ].join("\n");
 
   return csvContent;
@@ -298,5 +313,66 @@ export async function getExportPreview(
   } catch (error) {
     console.error("Preview error:", error);
     return "Error generating preview";
+  }
+}
+
+/**
+ * Export day tags to CSV format
+ */
+export async function exportDayTagsToCSV(): Promise<string> {
+  const tags = await getAllTags();
+  
+  const headers = [
+    "Tag Name",
+    "Description",
+    "Usage Count",
+    "Created At",
+  ];
+
+  const rows = tags.map((tag) => [
+    tag.displayName,
+    tag.description || "",
+    tag.usageCount.toString(),
+    tag.createdAt,
+  ]);
+
+  const csvContent = [
+    headers.join(","),
+    ...rows.map((row) => row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(",")),
+  ].join("\n");
+
+  return csvContent;
+}
+
+/**
+ * Export day tags data
+ */
+export async function exportDayTagsData(): Promise<ExportResult> {
+  try {
+    const content = await exportDayTagsToCSV();
+    
+    // Create filename with timestamp
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const filename = `crohns-tracker-day-tags-${timestamp}.csv`;
+
+    // Write file using new FileSystem API
+    const file = new File(Paths.document, filename);
+    await file.write(content);
+
+    // Count tags
+    const tags = await getAllTags();
+
+    return {
+      success: true,
+      filePath: file.uri,
+      entriesCount: tags.length,
+    };
+  } catch (error) {
+    console.error("Day tags export error:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Day tags export failed",
+      entriesCount: 0,
+    };
   }
 }
