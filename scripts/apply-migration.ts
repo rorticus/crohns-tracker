@@ -18,6 +18,7 @@ async function applyMigration() {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL UNIQUE,
         display_name TEXT NOT NULL,
+        description TEXT,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP NOT NULL,
         usage_count INTEGER DEFAULT 0 NOT NULL
       );

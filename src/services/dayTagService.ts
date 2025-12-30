@@ -48,6 +48,15 @@ export async function createTag(input: CreateTagInput): Promise<DayTag> {
     .get();
 
   if (existing) {
+    // If existing tag has no description but new input has one, update it
+    if (!existing.description && input.description) {
+      const [updated] = await db
+        .update(dayTags)
+        .set({ description: input.description })
+        .where(eq(dayTags.id, existing.id))
+        .returning();
+      return updated;
+    }
     return existing;
   }
 
@@ -57,11 +66,30 @@ export async function createTag(input: CreateTagInput): Promise<DayTag> {
     .values({
       name: normalized,
       displayName: input.displayName,
+      description: input.description,
       usageCount: 0,
     })
     .returning();
 
   return newTag;
+}
+
+/**
+ * Update a tag's description
+ */
+export async function updateTagDescription(tagId: number, description: string | null): Promise<DayTag> {
+  const tag = await getTagById(tagId);
+  if (!tag) {
+    throw new TagNotFoundError(tagId);
+  }
+
+  const [updated] = await db
+    .update(dayTags)
+    .set({ description })
+    .where(eq(dayTags.id, tagId))
+    .returning();
+
+  return updated;
 }
 
 /**
@@ -189,6 +217,7 @@ export async function getTagsForDate(date: string): Promise<DayTag[]> {
       id: dayTags.id,
       name: dayTags.name,
       displayName: dayTags.displayName,
+      description: dayTags.description,
       createdAt: dayTags.createdAt,
       usageCount: dayTags.usageCount,
     })

@@ -44,6 +44,7 @@ interface DayTagState {
 
   // Actions: Tag Management
   createTag: (displayName: string) => Promise<DayTag>;
+  updateTagDescription: (tagId: number, description: string | null) => Promise<DayTag>;
   deleteTag: (tagId: number) => Promise<void>;
 
   // Actions: Tag-Date Associations
@@ -161,6 +162,23 @@ export const useDayTagStore = create<DayTagState>((set, get) => ({
       throw error;
     } finally {
       set({ isCreatingTag: false });
+    }
+  },
+
+  updateTagDescription: async (tagId: number, description: string | null) => {
+    set({ error: null });
+    try {
+      const updatedTag = await DayTagService.updateTagDescription(tagId, description);
+
+      // Update in allTags
+      set((state) => ({
+        allTags: state.allTags.map((t) => (t.id === tagId ? updatedTag : t)),
+      }));
+
+      return updatedTag;
+    } catch (error: any) {
+      set({ error: error.message || 'Failed to update tag description' });
+      throw error;
     }
   },
 

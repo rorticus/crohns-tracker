@@ -15,10 +15,11 @@ import {
   Pressable,
   ActivityIndicator,
   Alert,
+  TextInput,
 } from 'react-native';
 import { DayTagPicker } from './DayTagPicker';
 import { useDayTagStore } from '../../stores/dayTagStore';
-import { TAG_TEST_IDS, type DayTagManagerProps } from '../../types/dayTag';
+import { TAG_TEST_IDS, type DayTagManagerProps, type DayTag } from '../../types/dayTag';
 
 export function DayTagManager({
   date,
@@ -36,11 +37,14 @@ export function DayTagManager({
     loadTagsForDate,
     addTagToDay,
     removeTagFromDay,
+    updateTagDescription,
     clearError,
   } = useDayTagStore();
 
   const [localTags, setLocalTags] = useState<string[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
+  const [editingTagId, setEditingTagId] = useState<number | null>(null);
+  const [editingDescription, setEditingDescription] = useState<string>('');
 
   // Load data when modal opens
   useEffect(() => {
@@ -207,6 +211,88 @@ export function DayTagManager({
             )}
           </View>
 
+          {/* Tag Descriptions Section */}
+          {localTags.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Tag Descriptions</Text>
+              <Text style={styles.sectionDescription}>
+                Add notes to describe what each tag represents (e.g., "X pills 3x daily")
+              </Text>
+              
+              {localTags.map((tagName) => {
+                const tag = allTags.find((t) => t.displayName === tagName);
+                if (!tag) return null;
+                
+                const isEditing = editingTagId === tag.id;
+                
+                return (
+                  <View key={tag.id} style={styles.tagDescriptionItem}>
+                    <View style={styles.tagDescriptionHeader}>
+                      <Text style={styles.tagDescriptionName}>{tag.displayName}</Text>
+                      {!isEditing && (
+                        <Pressable
+                          onPress={() => {
+                            setEditingTagId(tag.id);
+                            setEditingDescription(tag.description || '');
+                          }}
+                          style={styles.editButton}
+                        >
+                          <Text style={styles.editButtonText}>
+                            {tag.description ? 'Edit' : 'Add Note'}
+                          </Text>
+                        </Pressable>
+                      )}
+                    </View>
+                    
+                    {isEditing ? (
+                      <View style={styles.editingContainer}>
+                        <TextInput
+                          style={styles.descriptionInput}
+                          value={editingDescription}
+                          onChangeText={setEditingDescription}
+                          placeholder="Enter description..."
+                          multiline
+                          numberOfLines={3}
+                          textAlignVertical="top"
+                        />
+                        <View style={styles.editingActions}>
+                          <Pressable
+                            onPress={() => {
+                              setEditingTagId(null);
+                              setEditingDescription('');
+                            }}
+                            style={styles.cancelButton}
+                          >
+                            <Text style={styles.cancelButtonText}>Cancel</Text>
+                          </Pressable>
+                          <Pressable
+                            onPress={async () => {
+                              try {
+                                await updateTagDescription(tag.id, editingDescription || null);
+                                setEditingTagId(null);
+                                setEditingDescription('');
+                                loadAllTags(); // Refresh tags
+                              } catch (error: any) {
+                                Alert.alert('Error', error.message || 'Failed to save description');
+                              }
+                            }}
+                            style={styles.saveDescButton}
+                          >
+                            <Text style={styles.saveDescButtonText}>Save</Text>
+                          </Pressable>
+                        </View>
+                      </View>
+                    ) : tag.description ? (
+                      <Text style={styles.tagDescriptionText}>{tag.description}</Text>
+                    ) : (
+                      <Text style={styles.tagDescriptionPlaceholder}>No description</Text>
+                    )}
+                  </View>
+                );
+              })}
+            </View>
+          )}
+
           {/* Help text */}
           <View style={styles.helpSection}>
             <Text style={styles.helpTitle}>About Day Tags</Text>
@@ -326,5 +412,83 @@ const styles = StyleSheet.create({
     color: '#666',
     lineHeight: 20,
     marginBottom: 4,
+  },
+  tagDescriptionItem: {
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+    paddingTop: 12,
+    marginTop: 12,
+  },
+  tagDescriptionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  tagDescriptionName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#333',
+  },
+  tagDescriptionText: {
+    fontSize: 14,
+    color: '#555',
+    lineHeight: 20,
+  },
+  tagDescriptionPlaceholder: {
+    fontSize: 14,
+    color: '#999',
+    fontStyle: 'italic',
+  },
+  editButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: '#007AFF',
+    borderRadius: 6,
+  },
+  editButtonText: {
+    fontSize: 13,
+    color: '#fff',
+    fontWeight: '500',
+  },
+  editingContainer: {
+    marginTop: 8,
+  },
+  descriptionInput: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 14,
+    minHeight: 80,
+    backgroundColor: '#fff',
+  },
+  editingActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 8,
+    marginTop: 8,
+  },
+  cancelButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 6,
+    backgroundColor: '#f0f0f0',
+  },
+  cancelButtonText: {
+    fontSize: 14,
+    color: '#333',
+    fontWeight: '500',
+  },
+  saveDescButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 6,
+    backgroundColor: '#007AFF',
+  },
+  saveDescButtonText: {
+    fontSize: 14,
+    color: '#fff',
+    fontWeight: '600',
   },
 });
