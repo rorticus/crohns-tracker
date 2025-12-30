@@ -14,8 +14,8 @@ This migration adds the ability to add descriptions/notes to day tags. The descr
 - Updated `CreateTagInput` interface to include optional `description` field
 
 ### Service Layer
-- Updated `createTag()` to accept and store description
-- Updated `createTag()` to update existing tag's description if it's empty
+- Updated `createTag()` to accept and store description for new tags
+- `createTag()` returns existing tags unchanged if the tag name already exists
 - Added new `updateTagDescription()` function to update tag descriptions
 - Updated `getTagsForDate()` to include description field in results
 
