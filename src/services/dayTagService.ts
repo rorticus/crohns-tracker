@@ -30,6 +30,10 @@ import {
 
 /**
  * Create a new tag or return existing tag with same normalized name
+ * 
+ * Note: If a tag with the same normalized name already exists, this function
+ * returns the existing tag. The description is NOT automatically updated for
+ * existing tags. Use updateTagDescription() to modify existing tag descriptions.
  */
 export async function createTag(input: CreateTagInput): Promise<DayTag> {
   // Validate tag name
@@ -48,15 +52,7 @@ export async function createTag(input: CreateTagInput): Promise<DayTag> {
     .get();
 
   if (existing) {
-    // If existing tag has no description but new input has one, update it
-    if (!existing.description && input.description) {
-      const [updated] = await db
-        .update(dayTags)
-        .set({ description: input.description })
-        .where(eq(dayTags.id, existing.id))
-        .returning();
-      return updated;
-    }
+    // Return existing tag without modifying it
     return existing;
   }
 

@@ -271,7 +271,6 @@ export function DayTagManager({
                                 await updateTagDescription(tag.id, editingDescription || null);
                                 setEditingTagId(null);
                                 setEditingDescription('');
-                                loadAllTags(); // Refresh tags
                               } catch (error: any) {
                                 Alert.alert('Error', error.message || 'Failed to save description');
                               }
