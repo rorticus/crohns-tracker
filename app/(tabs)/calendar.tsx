@@ -35,7 +35,7 @@ export default function CalendarScreen() {
     inactivityThresholdMs: 60 * 60 * 1000, // 1 hour
   });
 
-  const getEntryIcon = (entry: typeof entries[0]): string => {
+  const getEntryIcon = (entry: (typeof entries)[0]): string => {
     if (entry.type === "bowel_movement") {
       return "🚽";
     }
@@ -89,9 +89,7 @@ export default function CalendarScreen() {
           </Text>
         )}
 
-        <View style={styles.quickActions}>
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
-
+        <View style={{ marginTop: 16 }}>
           <Button
             title="Manage Day Tags"
             onPress={() => setTagManagerVisible(true)}
@@ -100,25 +98,6 @@ export default function CalendarScreen() {
             testID="manage-tags-button"
             accessibilityLabel="Manage tags for selected date"
             accessibilityHint="Opens modal to add or remove tags for this day"
-          />
-
-          <Button
-            title="Quick Bowel Movement"
-            onPress={handleQuickBowelMovement}
-            loading={isLoading}
-            style={styles.button}
-            testID="add-entry-button"
-            accessibilityLabel="Quick log bowel movement with default values"
-            accessibilityHint="Logs a bowel movement entry for today"
-          />
-
-          <Button
-            title="Add Detailed Entry"
-            onPress={() => router.push("/entry/new")}
-            variant="outline"
-            style={styles.button}
-            accessibilityLabel="Add detailed entry"
-            accessibilityHint="Opens form to add bowel movement with all details"
           />
         </View>
 
@@ -168,9 +147,7 @@ export default function CalendarScreen() {
               >
                 <Text style={styles.entryTime}>{entry.time}</Text>
                 <View style={styles.entryContent}>
-                  <Text style={styles.entryIcon}>
-                    {getEntryIcon(entry)}
-                  </Text>
+                  <Text style={styles.entryIcon}>{getEntryIcon(entry)}</Text>
                   {entry.type === "bowel_movement" && entry.bowelMovement && (
                     <Text style={styles.entryDetails}>
                       Bristol: {entry.bowelMovement.consistency}, Urgency:{" "}
