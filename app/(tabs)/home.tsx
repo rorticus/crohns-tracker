@@ -124,21 +124,21 @@ export default function HomeScreen() {
 
         {morningEntries.length > 0 && (
           <MedicationList
-            title="Morning Medications"
+            title="Morning"
             icon="sunny"
             entries={morningEntries}
           />
         )}
         {afternoonEntries.length > 0 && (
           <MedicationList
-            title="Afternoon Medications"
+            title="Afternoon"
             icon="partly-sunny"
             entries={afternoonEntries}
           />
         )}
         {eveningEntries.length > 0 && (
           <MedicationList
-            title="Evening Medications"
+            title="Evening"
             icon="moon"
             entries={eveningEntries}
           />
