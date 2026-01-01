@@ -1,6 +1,7 @@
 import Calendar from "@/components/calendar";
 import Card from "@/components/card";
 import CircleIcon from "@/components/circleIcon";
+import { DayTagManager } from "@/components/DayTags";
 import Screen from "@/components/screen";
 import Text from "@/components/text";
 import useTheme from "@/hooks/useTheme";
@@ -9,7 +10,7 @@ import { formatTimeForDisplay } from "@/utils/dateUtils";
 import { FontAwesome5, Ionicons } from "@expo/vector-icons";
 import { format } from "date-fns";
 import { ReactNode, useMemo, useState } from "react";
-import { ScrollView, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
 
 export default function HomeScreen() {
   const theme = useTheme();
@@ -18,6 +19,7 @@ export default function HomeScreen() {
     year: selectedDate.getFullYear(),
     month: selectedDate.getMonth(),
   });
+  const [showDayTagManager, setShowDayTagManager] = useState(false);
 
   const monthEntries = useEvents({
     year: calendarDate.year,
@@ -67,6 +69,11 @@ export default function HomeScreen() {
 
   return (
     <Screen>
+      <DayTagManager
+        visible={showDayTagManager}
+        date={selectedDate.toString().split("T")[0]}
+        onClose={() => setShowDayTagManager(false)}
+      />
       <ScrollView contentContainerStyle={{ padding: 8 }}>
         <View style={{ marginBottom: 32 }}>
           <Calendar
@@ -91,9 +98,30 @@ export default function HomeScreen() {
           />
         </View>
 
-        <Text style={{ fontSize: 24, fontWeight: "heavy", marginBottom: 16 }}>
-          {format(selectedDate, "MMM do, yyyy")}
-        </Text>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            marginBottom: 24,
+          }}
+        >
+          <Text style={{ fontSize: 24, fontWeight: "heavy", flex: 1 }}>
+            {format(selectedDate, "MMM do, yyyy")}
+          </Text>
+          <Pressable
+            hitSlop={20}
+            onPress={() => {
+              setShowDayTagManager(true);
+            }}
+          >
+            <Ionicons
+              name="pricetags-outline"
+              size={24}
+              color={theme.colors.primary}
+            />
+          </Pressable>
+        </View>
+
         {morningEntries.length > 0 && (
           <MedicationList
             title="Morning Medications"
