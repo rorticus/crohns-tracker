@@ -38,7 +38,7 @@ export default function TabLayout() {
           <Tab icon="stats-chart" title="Timeline" />
         </TabTrigger>
         <View style={{ flex: 1 }} />
-        <CircleButton onPress={() => router.push("/entry/new")} />
+        <CircleButton onPress={() => router.push("/new-entry")} />
         <View style={{ flex: 1 }} />
         <TabTrigger name="export" href="/export">
           <Tab icon="share-social" title="Export" />
