@@ -14,11 +14,11 @@ export default db;
 
 // Re-export schema tables for easy access
 export {
-  entries,
   bowelMovements,
-  notes,
-  dayTags,
   dayTagAssociations,
+  dayTags,
+  entries,
+  notes,
 } from "./schema";
 
 // Re-export database instance as named export

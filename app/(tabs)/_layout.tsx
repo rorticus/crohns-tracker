@@ -1,3 +1,4 @@
+import useTheme from "@/hooks/useTheme";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
 import {
@@ -13,6 +14,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 export default function TabLayout() {
   const safeArea = useSafeAreaInsets();
   const router = useRouter();
+  const theme = useTheme();
 
   return (
     <Tabs>
@@ -20,15 +22,15 @@ export default function TabLayout() {
       <TabList
         style={{
           borderTopWidth: 1,
-          borderTopColor: "#1F2838",
-          backgroundColor: "#101729",
+          borderTopColor: theme.colors.border,
+          backgroundColor: theme.colors.background,
           paddingTop: 8,
           paddingLeft: Math.max(8, safeArea.left),
           paddingRight: Math.max(8, safeArea.right),
           paddingBottom: Math.max(8, safeArea.bottom),
         }}
       >
-        <TabTrigger name="home" href="/calendar">
+        <TabTrigger name="home" href="/home">
           <Tab icon="home" title="Home" />
         </TabTrigger>
         <View style={{ flex: 1 }} />
@@ -57,8 +59,11 @@ function Tab({
   const trigger = useTabTrigger({
     name: title.toLowerCase(),
   });
+  const theme = useTheme();
 
-  const color = trigger.triggerProps.isFocused ? "#68D1BF" : "#677389";
+  const color = trigger.triggerProps.isFocused
+    ? theme.colors.primary
+    : theme.colors.inactive;
 
   return (
     <View
@@ -77,6 +82,8 @@ function Tab({
 }
 
 function CircleButton({ onPress }: { onPress?: () => void }) {
+  const theme = useTheme();
+
   return (
     <Pressable style={{ alignItems: "center" }} onPress={onPress}>
       {/* Button */}
@@ -85,10 +92,10 @@ function CircleButton({ onPress }: { onPress?: () => void }) {
           width: 72,
           height: 72,
           borderRadius: 36,
-          backgroundColor: "#68D1BF",
+          backgroundColor: theme.colors.primary,
           alignItems: "center",
           justifyContent: "center",
-          shadowColor: "#68D1BF",
+          shadowColor: theme.colors.primary,
           shadowOffset: { width: 0, height: 8 },
           shadowOpacity: 0.6,
           shadowRadius: 18,
@@ -96,7 +103,7 @@ function CircleButton({ onPress }: { onPress?: () => void }) {
           opacity: 0.95,
         }}
       >
-        <Ionicons name="add" color="white" size={32} />
+        <Ionicons name="add" color={theme.colors.text} size={32} />
       </View>
     </Pressable>
   );
