@@ -6,7 +6,7 @@ import Screen from "@/components/screen";
 import Text from "@/components/text";
 import useTheme from "@/hooks/useTheme";
 import useEvents from "@/stores/useEvents";
-import { formatTimeForDisplay } from "@/utils/dateUtils";
+import { formatDateForDatabase, formatTimeForDisplay } from "@/utils/dateUtils";
 import { FontAwesome5, Ionicons } from "@expo/vector-icons";
 import { format } from "date-fns";
 import { ReactNode, useMemo, useState } from "react";
@@ -71,7 +71,7 @@ export default function HomeScreen() {
     <Screen>
       <DayTagManager
         visible={showDayTagManager}
-        date={selectedDate.toString().split("T")[0]}
+        date={formatDateForDatabase(selectedDate)}
         onClose={() => setShowDayTagManager(false)}
       />
       <ScrollView contentContainerStyle={{ padding: 8 }}>
