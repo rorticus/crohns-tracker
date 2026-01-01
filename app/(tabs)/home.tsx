@@ -158,8 +158,50 @@ function EntryCard({
   switch (entry.entry.type) {
     case "bowel_movement":
       return (
-        <Card>
-          <Text>{entry.entry.time}</Text>
+        <Card
+          leftIcon={
+            <CircleIcon
+              icon={({ color, size }) => (
+                <FontAwesome5 name="toilet" color={color} size={size} />
+              )}
+              color={"#A2845E"}
+            />
+          }
+          rightIcon={
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+            >
+              <Ionicons
+                name="time"
+                size={16}
+                color={theme.colors.textSecondary}
+              />
+              <Text style={{ color: theme.colors.textSecondary }}>
+                {formatTimeForDisplay(entry.entry.time)}
+              </Text>
+            </View>
+          }
+        >
+          <View
+            style={{
+              gap: 8,
+              flexDirection: "row",
+              flexWrap: "wrap",
+              alignItems: "center",
+            }}
+          >
+            <Text style={{ color: theme.colors.textSecondary }}>
+              Bristol: {entry.bowelMovement?.consistency}
+            </Text>
+            <Ionicons
+              name="ellipse"
+              size={6}
+              color={theme.colors.textSecondary}
+            />
+            <Text style={{ color: theme.colors.textSecondary }}>
+              Urgency: {entry.bowelMovement?.urgency}
+            </Text>
+          </View>
         </Card>
       );
     case "note": {
