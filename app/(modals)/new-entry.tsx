@@ -3,6 +3,7 @@ import DateInput from "@/components/dateInput";
 import Screen from "@/components/screen";
 import Text from "@/components/text";
 import useTheme from "@/hooks/useTheme";
+import { formatDateForDatabase } from "@/utils/dateUtils";
 import { FontAwesome5, Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
 import { Controller, useForm } from "react-hook-form";
@@ -15,6 +16,7 @@ export default function NewEntry() {
   const form = useForm({
     defaultValues: {
       type: "bowelMovement",
+      date: formatDateForDatabase(new Date()),
     },
   });
 
@@ -44,7 +46,13 @@ export default function NewEntry() {
             gap: 8,
           }}
         >
-          <DateInput value="2025-06-01" onChange={() => {}} />
+          <Controller
+            name="date"
+            control={form.control}
+            render={({ field }) => (
+              <DateInput value={field.value} onChange={field.onChange} />
+            )}
+          />
         </View>
         <Controller
           control={form.control}

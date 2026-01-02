@@ -4,58 +4,58 @@
 
 // Helper function to convert date string (YYYY-MM-DD) to Date object in local timezone
 const dateStringToLocalDate = (dateString: string): Date => {
-  const [year, month, day] = dateString.split('-').map(Number);
+  const [year, month, day] = dateString.split("-").map(Number);
   return new Date(year, month - 1, day);
 };
 
 // Format date for display using user's locale (e.g., "Oct 25, 2025" in US)
 export const formatDateForDisplay = (date: Date | string): string => {
-  const dateObj = typeof date === 'string' ? dateStringToLocalDate(date) : date;
+  const dateObj = typeof date === "string" ? dateStringToLocalDate(date) : date;
   return dateObj.toLocaleDateString(undefined, {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
+    month: "short",
+    day: "numeric",
+    year: "numeric",
   });
 };
 
 // Format date in short numeric format using user's locale (e.g., "10/25/2025" in US)
 export const formatDateShort = (date: Date | string): string => {
-  const dateObj = typeof date === 'string' ? dateStringToLocalDate(date) : date;
+  const dateObj = typeof date === "string" ? dateStringToLocalDate(date) : date;
   return dateObj.toLocaleDateString(undefined, {
-    month: 'numeric',
-    day: 'numeric',
-    year: 'numeric',
+    month: "numeric",
+    day: "numeric",
+    year: "numeric",
   });
 };
 
 // Format date for database storage (YYYY-MM-DD)
 export const formatDateForDatabase = (date: Date | string): string => {
-  const dateObj = typeof date === 'string' ? dateStringToLocalDate(date) : date;
+  const dateObj = typeof date === "string" ? dateStringToLocalDate(date) : date;
   const year = dateObj.getFullYear();
-  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-  const day = String(dateObj.getDate()).padStart(2, '0');
+  const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+  const day = String(dateObj.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 };
 
 // Format time for display (12-hour format)
 export const formatTimeForDisplay = (time: string): string => {
-  const [hours, minutes] = time.split(':').map(Number);
-  const period = hours >= 12 ? 'PM' : 'AM';
+  const [hours, minutes] = time.split(":").map(Number);
+  const period = hours >= 12 ? "PM" : "AM";
   const displayHours = hours % 12 || 12;
-  return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+  return `${displayHours}:${minutes.toString().padStart(2, "0")} ${period}`;
 };
 
 // Format time for database storage (24-hour format HH:MM)
 export const formatTimeForDatabase = (date: Date): string => {
-  return date.toTimeString().split(' ')[0].substring(0, 5);
+  return date.toTimeString().split(" ")[0].substring(0, 5);
 };
 
 // Get current date in database format (local timezone)
 export const getCurrentDate = (): string => {
   const now = new Date();
   const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 };
 
@@ -70,7 +70,9 @@ export const generateTimestamp = (date: string, time: string): string => {
 };
 
 // Parse ISO timestamp to date and time components
-export const parseTimestamp = (timestamp: string): { date: string; time: string } => {
+export const parseTimestamp = (
+  timestamp: string
+): { date: string; time: string } => {
   const dateObj = new Date(timestamp);
   return {
     date: formatDateForDatabase(dateObj),
@@ -164,7 +166,10 @@ export const getDaysBetween = (startDate: string, endDate: string): number => {
 };
 
 // Sort timestamps in chronological order
-export const sortTimestamps = (timestamps: string[], descending = false): string[] => {
+export const sortTimestamps = (
+  timestamps: string[],
+  descending = false
+): string[] => {
   return [...timestamps].sort((a, b) => {
     const dateA = new Date(a).getTime();
     const dateB = new Date(b).getTime();
@@ -173,7 +178,9 @@ export const sortTimestamps = (timestamps: string[], descending = false): string
 };
 
 // Group entries by date
-export const groupEntriesByDate = <T extends { date: string }>(entries: T[]): Record<string, T[]> => {
+export const groupEntriesByDate = <T extends { date: string }>(
+  entries: T[]
+): Record<string, T[]> => {
   return entries.reduce((groups, entry) => {
     const date = entry.date;
     if (!groups[date]) {
@@ -190,9 +197,9 @@ export const getRelativeDateLabel = (date: string): string => {
   const yesterday = subtractDays(today, 1);
   const tomorrow = addDays(today, 1);
 
-  if (date === today) return 'Today';
-  if (date === yesterday) return 'Yesterday';
-  if (date === tomorrow) return 'Tomorrow';
+  if (date === today) return "Today";
+  if (date === yesterday) return "Yesterday";
+  if (date === tomorrow) return "Tomorrow";
 
   return formatDateForDisplay(date);
 };
@@ -211,3 +218,23 @@ export const isValidTimeString = (time: string): boolean => {
   const regex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
   return regex.test(time);
 };
+
+export function incrementMonth(
+  year: number,
+  month: number
+): { year: number; month: number } {
+  if (month === 12) {
+    return { year: year + 1, month: 1 };
+  }
+  return { year, month: month + 1 };
+}
+
+export function decrementMonth(
+  year: number,
+  month: number
+): { year: number; month: number } {
+  if (month === 1) {
+    return { year: year - 1, month: 12 };
+  }
+  return { year, month: month - 1 };
+}

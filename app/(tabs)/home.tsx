@@ -6,7 +6,12 @@ import Screen from "@/components/screen";
 import Text from "@/components/text";
 import useTheme from "@/hooks/useTheme";
 import useEvents from "@/stores/useEvents";
-import { formatDateForDatabase, formatTimeForDisplay } from "@/utils/dateUtils";
+import {
+  decrementMonth,
+  formatDateForDatabase,
+  formatTimeForDisplay,
+  incrementMonth,
+} from "@/utils/dateUtils";
 import { FontAwesome5, Ionicons } from "@expo/vector-icons";
 import { format } from "date-fns";
 import { ReactNode, useMemo, useState } from "react";
@@ -17,7 +22,7 @@ export default function HomeScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [calendarDate, setCalendarDate] = useState({
     year: selectedDate.getFullYear(),
-    month: selectedDate.getMonth(),
+    month: selectedDate.getMonth() + 1,
   });
   const [showDayTagManager, setShowDayTagManager] = useState(false);
 
@@ -28,7 +33,7 @@ export default function HomeScreen() {
 
   const selectedDateEntries = useEvents({
     year: selectedDate.getFullYear(),
-    month: selectedDate.getMonth(),
+    month: selectedDate.getMonth() + 1,
     day: selectedDate.getDate(),
   });
 
@@ -38,7 +43,7 @@ export default function HomeScreen() {
 
     if (
       calendarDate.year === selectedDate.getFullYear() &&
-      calendarDate.month === selectedDate.getMonth()
+      calendarDate.month === selectedDate.getMonth() + 1
     ) {
       attrs[selectedDate.getDate()] = { highlighted: true };
     }
@@ -47,7 +52,7 @@ export default function HomeScreen() {
       const entryDate = new Date(entry.entry.timestamp);
       if (
         entryDate.getFullYear() === calendarDate.year &&
-        entryDate.getMonth() === calendarDate.month
+        entryDate.getMonth() === calendarDate.month - 1
       ) {
         const day = entryDate.getDate();
         attrs[day] = { ...(attrs[day] || {}), marked: true };
@@ -81,16 +86,10 @@ export default function HomeScreen() {
             year={calendarDate.year}
             dayAttributes={dayAttributes}
             onMonthForward={() => {
-              setCalendarDate((cur) => ({
-                year: cur.year,
-                month: cur.month + 1,
-              }));
+              setCalendarDate((cur) => incrementMonth(cur.year, cur.month));
             }}
             onMonthBackward={() => {
-              setCalendarDate((cur) => ({
-                year: cur.year,
-                month: cur.month - 1,
-              }));
+              setCalendarDate((cur) => decrementMonth(cur.year, cur.month));
             }}
             onDaySelected={(date) => {
               setSelectedDate(date);

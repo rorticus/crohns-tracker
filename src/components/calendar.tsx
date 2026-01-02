@@ -25,8 +25,8 @@ export default function Calendar({
 }) {
   const theme = useTheme();
 
-  const firstDay = new Date(year, month, 1).getDay(); // 0 (Sun) - 6 (Sat)
-  const numberOfDays = new Date(year, month + 1, 0).getDate(); // number of days in month
+  const firstDay = new Date(year, month - 1, 1).getDay(); // 0 (Sun) - 6 (Sat)
+  const numberOfDays = new Date(year, month, 0).getDate(); // number of days in month
   const weeks = Math.ceil((numberOfDays + firstDay) / 7);
 
   return (
@@ -39,7 +39,7 @@ export default function Calendar({
         </Pressable>
         <View style={{ flex: 1, alignItems: "center" }}>
           <Text style={{ fontSize: 20, fontWeight: "bold", marginVertical: 8 }}>
-            {new Date(year, month).toLocaleString("default", {
+            {new Date(year, month - 1).toLocaleString("default", {
               month: "long",
               year: "numeric",
             })}
@@ -95,7 +95,7 @@ export default function Calendar({
                   justifyContent: "center",
                 }}
                 onPress={() => {
-                  const date = new Date(year, month, dayNumber);
+                  const date = new Date(year, month - 1, dayNumber);
                   onDaySelected?.(date);
                 }}
               >

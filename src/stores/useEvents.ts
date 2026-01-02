@@ -10,10 +10,10 @@ export default function useEvents(filters: {
 }) {
   const { year, month, day } = filters;
 
-  const startDate = new Date(year, month, day ?? 1);
+  const startDate = new Date(year, month - 1, day ?? 1);
   const endDate = day
-    ? new Date(year, month, day + 1)
-    : new Date(year, month + 1, 1);
+    ? new Date(year, month - 1, day + 1)
+    : new Date(year, month, 1);
 
   return useLiveQuery(
     db

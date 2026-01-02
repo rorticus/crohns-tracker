@@ -1,6 +1,12 @@
+import useTheme from "@/hooks/useTheme";
+import {
+  decrementMonth,
+  formatDateForDatabase,
+  incrementMonth,
+} from "@/utils/dateUtils";
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
-import { Modal, View } from "react-native";
+import { Modal, Pressable, View } from "react-native";
 import Button from "./button";
 import Calendar from "./calendar";
 import Card from "./card";
@@ -17,8 +23,9 @@ export default function DateInput({ value, onChange }: DateInputProps) {
     month: number;
   }>({
     year: new Date().getFullYear(),
-    month: new Date().getMonth() + 1,
+    month: new Date().getMonth(),
   });
+  const theme = useTheme();
 
   useEffect(() => {
     if (showCalendar) {
@@ -41,23 +48,43 @@ export default function DateInput({ value, onChange }: DateInputProps) {
             justifyContent: "center",
             alignItems: "center",
             backgroundColor: "#00000099",
+            padding: 16,
           }}
         >
           <Card>
+            <Pressable
+              style={{ alignSelf: "flex-end", marginBottom: 16 }}
+              onPress={() => setShowCalendar(false)}
+            >
+              <Ionicons
+                name="close"
+                size={24}
+                color={theme.colors.text}
+                onPress={() => setShowCalendar(false)}
+              />
+            </Pressable>
+
             <Calendar
               year={calendarDate.year}
               month={calendarDate.month}
               onMonthForward={() => {
-                setCalendarDate((prev) => ({
-                  year: prev.year,
-                  month: prev.month + 1,
-                }));
+                setCalendarDate((prev) =>
+                  incrementMonth(prev.year, prev.month)
+                );
               }}
               onMonthBackward={() => {
-                setCalendarDate((prev) => ({
-                  year: prev.year,
-                  month: prev.month - 1,
-                }));
+                setCalendarDate((prev) =>
+                  decrementMonth(prev.year, prev.month)
+                );
+              }}
+              dayAttributes={{
+                [parseInt(value?.split("-")[2])]: {
+                  highlighted: true,
+                },
+              }}
+              onDaySelected={(date) => {
+                onChange?.(formatDateForDatabase(date));
+                setShowCalendar(false);
               }}
             />
           </Card>
