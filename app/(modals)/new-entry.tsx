@@ -1,4 +1,5 @@
 import Button from "@/components/button";
+import DateInput from "@/components/dateInput";
 import Screen from "@/components/screen";
 import Text from "@/components/text";
 import useTheme from "@/hooks/useTheme";
@@ -36,6 +37,15 @@ export default function NewEntry() {
         }}
       />
       <View style={{ paddingHorizontal: 16 }}>
+        <View
+          style={{
+            flexDirection: "row",
+            marginBottom: 24,
+            gap: 8,
+          }}
+        >
+          <DateInput value="2025-06-01" onChange={() => {}} />
+        </View>
         <Controller
           control={form.control}
           name="type"
