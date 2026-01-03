@@ -1,6 +1,6 @@
 import useTheme from "@/hooks/useTheme";
 import { LinearGradient } from "expo-linear-gradient";
-import React, { useRef, useState, useMemo } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import {
   GestureResponderEvent,
   LayoutChangeEvent,
@@ -72,6 +72,7 @@ export const GradientSlider: React.FC<GradientSliderProps> = ({
       PanResponder.create({
         onStartShouldSetPanResponder: () => true,
         onMoveShouldSetPanResponder: () => true,
+        onMoveShouldSetPanResponderCapture: () => true,
         onPanResponderGrant: () => {
           setIsDragging(true);
           panGestureStartValue.current = valueRef.current;
@@ -85,7 +86,8 @@ export const GradientSlider: React.FC<GradientSliderProps> = ({
 
           // Calculate position from value
           const startVal = panGestureStartValue.current;
-          const startPercentage = (startVal - minimumValue) / (maximumValue - minimumValue);
+          const startPercentage =
+            (startVal - minimumValue) / (maximumValue - minimumValue);
           const startPosition = startPercentage * width;
 
           // Calculate new position
@@ -96,13 +98,16 @@ export const GradientSlider: React.FC<GradientSliderProps> = ({
 
           // Convert position back to value
           const percentage = Math.max(0, Math.min(1, newPosition / width));
-          let newValue = minimumValue + percentage * (maximumValue - minimumValue);
+          let newValue =
+            minimumValue + percentage * (maximumValue - minimumValue);
 
           if (step > 0) {
             newValue = Math.round(newValue / step) * step;
           }
 
-          newValue = Math.floor(Math.max(minimumValue, Math.min(maximumValue, newValue)));
+          newValue = Math.floor(
+            Math.max(minimumValue, Math.min(maximumValue, newValue))
+          );
 
           setValue(newValue);
           onValueChange?.(newValue);
@@ -113,6 +118,7 @@ export const GradientSlider: React.FC<GradientSliderProps> = ({
         onPanResponderTerminate: () => {
           setIsDragging(false);
         },
+        onPanResponderTerminationRequest: () => false,
       }),
     [minimumValue, maximumValue, step, onValueChange]
   );
@@ -122,18 +128,32 @@ export const GradientSlider: React.FC<GradientSliderProps> = ({
   };
 
   const thumbPosition = valueToPosition(value, trackWidth);
-  console.log("thumbPosition", thumbPosition);
 
   return (
     <View style={styles.container}>
       <View style={styles.trackContainer} onLayout={handleTrackLayout}>
+        <View
+          style={[
+            styles.gradient,
+            {
+              height: trackHeight,
+              borderRadius: trackHeight / 2,
+              backgroundColor: theme.colors.card,
+            },
+          ]}
+        />
         <LinearGradient
           colors={gradientColors as any}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={[
+            { position: "absolute" },
             styles.gradient,
-            { height: trackHeight, borderRadius: trackHeight / 2 },
+            {
+              height: trackHeight,
+              borderRadius: trackHeight / 2,
+              width: thumbPosition,
+            },
           ]}
         />
 
@@ -165,7 +185,6 @@ export const GradientSlider: React.FC<GradientSliderProps> = ({
 const styles = StyleSheet.create({
   container: {
     width: "100%",
-    paddingHorizontal: 20,
   },
   trackContainer: {
     width: "100%",

@@ -8,5 +8,9 @@ export default {
     inactive: "#677389",
     border: "#1F2838",
     card: "#202939",
+    bm: "#68D1BF",
+    bmSlider: ["#A0E8E0", "#68D1BF"],
+    urgency: "#FF6B35",
+    urgencySlider: ["#FFD93D", "#FF8C42", "#FF6B35"],
   },
 };
