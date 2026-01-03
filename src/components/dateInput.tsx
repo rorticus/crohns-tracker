@@ -10,13 +10,21 @@ import { Modal, Pressable, View } from "react-native";
 import Button from "./button";
 import Calendar from "./calendar";
 import Card from "./card";
+import Text from "./text";
 
 type DateInputProps = {
   value: string;
   onChange: (newDate: string) => void;
+  fill?: boolean;
+  title?: string;
 };
 
-export default function DateInput({ value, onChange }: DateInputProps) {
+export default function DateInput({
+  fill,
+  value,
+  onChange,
+  title,
+}: DateInputProps) {
   const [showCalendar, setShowCalendar] = useState(false);
   const [calendarDate, setCalendarDate] = useState<{
     year: number;
@@ -35,7 +43,7 @@ export default function DateInput({ value, onChange }: DateInputProps) {
   }, [showCalendar, value]);
 
   return (
-    <View>
+    <>
       <Modal
         transparent={true}
         animationType="fade"
@@ -52,17 +60,26 @@ export default function DateInput({ value, onChange }: DateInputProps) {
           }}
         >
           <Card>
-            <Pressable
-              style={{ alignSelf: "flex-end", marginBottom: 16 }}
-              onPress={() => setShowCalendar(false)}
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 16,
+              }}
             >
-              <Ionicons
-                name="close"
-                size={24}
-                color={theme.colors.text}
-                onPress={() => setShowCalendar(false)}
-              />
-            </Pressable>
+              <Text style={{ fontWeight: "bold", fontSize: 16 }}>
+                {title ?? "Select Date"}
+              </Text>
+              <Pressable onPress={() => setShowCalendar(false)}>
+                <Ionicons
+                  name="close"
+                  size={24}
+                  color={theme.colors.text}
+                  onPress={() => setShowCalendar(false)}
+                />
+              </Pressable>
+            </View>
 
             <Calendar
               year={calendarDate.year}
@@ -91,12 +108,13 @@ export default function DateInput({ value, onChange }: DateInputProps) {
         </View>
       </Modal>
       <Button
+        fill={fill}
         leftIcon={({ color, size }) => (
           <Ionicons name="calendar" size={size} color={color} />
         )}
         title={value}
         onPress={() => setShowCalendar(true)}
       />
-    </View>
+    </>
   );
 }

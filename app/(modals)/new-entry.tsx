@@ -2,8 +2,12 @@ import Button from "@/components/button";
 import DateInput from "@/components/dateInput";
 import Screen from "@/components/screen";
 import Text from "@/components/text";
+import TimeInput from "@/components/timeInput";
 import useTheme from "@/hooks/useTheme";
-import { formatDateForDatabase } from "@/utils/dateUtils";
+import {
+  formatDateForDatabase,
+  formatTimeForDatabase,
+} from "@/utils/dateUtils";
 import { FontAwesome5, Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
 import { Controller, useForm } from "react-hook-form";
@@ -17,6 +21,7 @@ export default function NewEntry() {
     defaultValues: {
       type: "bowelMovement",
       date: formatDateForDatabase(new Date()),
+      time: formatTimeForDatabase(new Date()),
     },
   });
 
@@ -50,7 +55,24 @@ export default function NewEntry() {
             name="date"
             control={form.control}
             render={({ field }) => (
-              <DateInput value={field.value} onChange={field.onChange} />
+              <DateInput
+                fill
+                value={field.value}
+                onChange={field.onChange}
+                title="Event Date"
+              />
+            )}
+          />
+          <Controller
+            name="time"
+            control={form.control}
+            render={({ field }) => (
+              <TimeInput
+                fill
+                value={field.value}
+                onChange={field.onChange}
+                title="Event Time"
+              />
             )}
           />
         </View>
