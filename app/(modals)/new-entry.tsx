@@ -1,6 +1,7 @@
 import Button from "@/components/button";
 import DateInput from "@/components/dateInput";
 import Screen from "@/components/screen";
+import { GradientSlider } from "@/components/slider";
 import Text from "@/components/text";
 import TimeInput from "@/components/timeInput";
 import useTheme from "@/hooks/useTheme";
@@ -22,6 +23,7 @@ export default function NewEntry() {
       type: "bowelMovement",
       date: formatDateForDatabase(new Date()),
       time: formatTimeForDatabase(new Date()),
+      bristol: 4,
     },
   });
 
@@ -106,6 +108,20 @@ export default function NewEntry() {
                 selected={field.value === "event"}
               />
             </View>
+          )}
+        />
+        <Controller
+          control={form.control}
+          name="bristol"
+          render={({ field }) => (
+            <GradientSlider
+              value={field.value}
+              onValueChange={field.onChange}
+              minimumValue={1}
+              maximumValue={7}
+              minimumLabel="Type 1"
+              maximumLabel="Type 7"
+            />
           )}
         />
       </View>
