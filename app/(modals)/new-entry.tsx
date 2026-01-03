@@ -3,6 +3,7 @@ import DateInput from "@/components/dateInput";
 import Screen from "@/components/screen";
 import { GradientSlider } from "@/components/slider";
 import Text from "@/components/text";
+import TextArea from "@/components/textarea";
 import TimeInput from "@/components/timeInput";
 import useTheme from "@/hooks/useTheme";
 import {
@@ -49,6 +50,7 @@ export default function NewEntry() {
       time: formatTimeForDatabase(new Date()),
       bristol: 4,
       urgency: 2,
+      notes: "",
     },
   });
 
@@ -126,7 +128,9 @@ export default function NewEntry() {
                     <FontAwesome5 name="toilet" size={size} color={color} />
                   )}
                   onPress={() => field.onChange("bowelMovement")}
-                  selected={field.value === "bowelMovement"}
+                  type={
+                    field.value === "bowelMovement" ? "selected" : "default"
+                  }
                 />
                 <Button
                   fill
@@ -135,115 +139,146 @@ export default function NewEntry() {
                     <Ionicons name="calendar" size={size} color={color} />
                   )}
                   onPress={() => field.onChange("event")}
-                  selected={field.value === "event"}
+                  type={field.value === "event" ? "selected" : "default"}
                 />
               </View>
             )}
           />
-          {type === "bowelMovement" && (
-            <>
-              <View style={{ marginBottom: 24 }}>
-                <View
-                  style={{
-                    marginBottom: 8,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <Text
-                    style={{ fontSize: 16, fontWeight: "600", marginBottom: 8 }}
-                  >
-                    Bristol Stool Scale
-                  </Text>
+          <View style={{ marginBottom: 32 }}>
+            {type === "bowelMovement" && (
+              <>
+                <View style={{ marginBottom: 24 }}>
                   <View
                     style={{
-                      backgroundColor: `${theme.colors.bm}66`,
-                      paddingHorizontal: 8,
-                      paddingVertical: 4,
-                      borderRadius: 4,
+                      marginBottom: 8,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
                     }}
                   >
-                    <Text>Type {bristolValue}</Text>
+                    <Text
+                      style={{
+                        fontSize: 16,
+                        fontWeight: "600",
+                        marginBottom: 8,
+                      }}
+                    >
+                      Bristol Stool Scale
+                    </Text>
+                    <View
+                      style={{
+                        backgroundColor: `${theme.colors.bm}66`,
+                        paddingHorizontal: 8,
+                        paddingVertical: 4,
+                        borderRadius: 4,
+                      }}
+                    >
+                      <Text>Type {bristolValue}</Text>
+                    </View>
                   </View>
-                </View>
 
-                <Text
-                  style={{
-                    color: theme.colors.textSecondary,
-                    marginBottom: 28,
-                  }}
-                >
-                  {bristolScaleDescriptions[bristolValue]}
-                </Text>
-                <Controller
-                  control={form.control}
-                  name="bristol"
-                  render={({ field }) => (
-                    <GradientSlider
-                      value={field.value}
-                      onValueChange={field.onChange}
-                      minimumValue={1}
-                      maximumValue={7}
-                      minimumLabel="Type 1"
-                      maximumLabel="Type 7"
-                      gradientColors={theme.colors.bmSlider}
-                    />
-                  )}
-                />
-              </View>
-              <View style={{ marginBottom: 24 }}>
-                <View
-                  style={{
-                    marginBottom: 8,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                  }}
-                >
                   <Text
-                    style={{ fontSize: 16, fontWeight: "600", marginBottom: 8 }}
+                    style={{
+                      color: theme.colors.textSecondary,
+                      marginBottom: 28,
+                    }}
                   >
-                    Urgency Level
+                    {bristolScaleDescriptions[bristolValue]}
                   </Text>
+                  <Controller
+                    control={form.control}
+                    name="bristol"
+                    render={({ field }) => (
+                      <GradientSlider
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        minimumValue={1}
+                        maximumValue={7}
+                        minimumLabel="Type 1"
+                        maximumLabel="Type 7"
+                        gradientColors={theme.colors.bmSlider}
+                      />
+                    )}
+                  />
+                </View>
+                <View style={{ marginBottom: 24 }}>
                   <View
                     style={{
-                      backgroundColor: `${theme.colors.urgency}66`,
-                      paddingHorizontal: 8,
-                      paddingVertical: 4,
-                      borderRadius: 4,
+                      marginBottom: 8,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
                     }}
                   >
-                    <Text>{urgencyLabels[urgencyValue]}</Text>
+                    <Text
+                      style={{
+                        fontSize: 16,
+                        fontWeight: "600",
+                        marginBottom: 8,
+                      }}
+                    >
+                      Urgency Level
+                    </Text>
+                    <View
+                      style={{
+                        backgroundColor: `${theme.colors.urgency}66`,
+                        paddingHorizontal: 8,
+                        paddingVertical: 4,
+                        borderRadius: 4,
+                      }}
+                    >
+                      <Text>{urgencyLabels[urgencyValue]}</Text>
+                    </View>
                   </View>
-                </View>
 
-                <Text
-                  style={{
-                    color: theme.colors.textSecondary,
-                    marginBottom: 28,
-                  }}
-                >
-                  {urgencyDescriptions[urgencyValue]}
-                </Text>
-                <Controller
-                  control={form.control}
-                  name="urgency"
-                  render={({ field }) => (
-                    <GradientSlider
-                      value={field.value}
-                      onValueChange={field.onChange}
-                      minimumValue={1}
-                      maximumValue={4}
-                      minimumLabel={urgencyLabels[1]}
-                      maximumLabel={urgencyLabels[4]}
-                      gradientColors={theme.colors.urgencySlider}
-                    />
-                  )}
-                />
-              </View>
-            </>
-          )}
+                  <Text
+                    style={{
+                      color: theme.colors.textSecondary,
+                      marginBottom: 28,
+                    }}
+                  >
+                    {urgencyDescriptions[urgencyValue]}
+                  </Text>
+                  <Controller
+                    control={form.control}
+                    name="urgency"
+                    render={({ field }) => (
+                      <GradientSlider
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        minimumValue={1}
+                        maximumValue={4}
+                        minimumLabel={urgencyLabels[1]}
+                        maximumLabel={urgencyLabels[4]}
+                        gradientColors={theme.colors.urgencySlider}
+                      />
+                    )}
+                  />
+                </View>
+                <View>
+                  <Controller
+                    name="notes"
+                    control={form.control}
+                    render={({ field }) => (
+                      <TextArea
+                        placeholder="Additional notes (optional)"
+                        value={field.value}
+                        onChangeText={field.onChange}
+                        numberOfLines={4}
+                      />
+                    )}
+                  />
+                </View>
+              </>
+            )}
+          </View>
+          <Button
+            title="Save Entry"
+            rightIcon={({ color, size }) => (
+              <Ionicons name="arrow-forward" color={color} size={size} />
+            )}
+            type="primary"
+          />
         </View>
       </ScrollView>
     </Screen>
