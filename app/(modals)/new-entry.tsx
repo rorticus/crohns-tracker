@@ -60,6 +60,7 @@ export default function NewEntry() {
       bristol: 4,
       urgency: 2,
       notes: "",
+      category: "medication",
     },
   });
 
@@ -149,7 +150,6 @@ export default function NewEntry() {
                   }}
                 >
                   <Button
-                    fill
                     title="Bowel Movement"
                     leftIcon={({ color, size }) => (
                       <FontAwesome5 name="toilet" size={size} color={color} />
@@ -160,7 +160,6 @@ export default function NewEntry() {
                     }
                   />
                   <Button
-                    fill
                     title="Note"
                     leftIcon={({ color, size }) => (
                       <Ionicons name="calendar" size={size} color={color} />
@@ -284,7 +283,103 @@ export default function NewEntry() {
                   </View>
                 </>
               )}
+              {type === "event" && (
+                <View
+                  style={{
+                    marginBottom: 32,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: "600",
+                      marginBottom: 8,
+                    }}
+                  >
+                    Category
+                  </Text>
+                  <Controller
+                    name="category"
+                    control={form.control}
+                    render={({ field }) => (
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          flexWrap: "wrap",
+                          gap: 8,
+                        }}
+                      >
+                        <Button
+                          leftIcon={({ color, size }) => (
+                            <Ionicons
+                              name="fast-food"
+                              size={size}
+                              color={color}
+                            />
+                          )}
+                          title="Food"
+                          onPress={() => field.onChange("food")}
+                          type={field.value === "food" ? "selected" : "default"}
+                        />
+                        <Button
+                          leftIcon={({ color, size }) => (
+                            <Ionicons
+                              name="bicycle"
+                              size={size}
+                              color={color}
+                            />
+                          )}
+                          title="Exercise"
+                          onPress={() => field.onChange("exercise")}
+                          type={
+                            field.value === "exercise" ? "selected" : "default"
+                          }
+                        />
+                        <Button
+                          leftIcon={({ color, size }) => (
+                            <FontAwesome5
+                              name="pills"
+                              size={size}
+                              color={color}
+                            />
+                          )}
+                          title="Medication"
+                          onPress={() => field.onChange("medication")}
+                          type={
+                            field.value === "medication"
+                              ? "selected"
+                              : "default"
+                          }
+                        />
+                        <Button
+                          leftIcon={({ color, size }) => (
+                            <Ionicons
+                              name="ellipsis-horizontal"
+                              size={size}
+                              color={color}
+                            />
+                          )}
+                          title="Other"
+                          onPress={() => field.onChange("other")}
+                          type={
+                            field.value === "other" ? "selected" : "default"
+                          }
+                        />
+                      </View>
+                    )}
+                  />
+                </View>
+              )}
               <View>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: "600",
+                    marginBottom: 8,
+                  }}
+                >
+                  Notes
+                </Text>
                 <Controller
                   name="notes"
                   control={form.control}
