@@ -4,6 +4,7 @@ import CircleIcon from "@/components/circleIcon";
 import { DayTagManager } from "@/components/DayTags";
 import Screen from "@/components/screen";
 import Text from "@/components/text";
+import useDayTagsForDate from "@/hooks/useDayTagsForDate";
 import useTheme from "@/hooks/useTheme";
 import useEvents from "@/stores/useEvents";
 import {
@@ -36,6 +37,8 @@ export default function HomeScreen() {
     month: selectedDate.getMonth() + 1,
     day: selectedDate.getDate(),
   });
+
+  const dayTags = useDayTagsForDate(formatDateForDatabase(selectedDate));
 
   const dayAttributes = useMemo(() => {
     const attrs: Record<number, { highlighted?: boolean; marked?: boolean }> =
@@ -97,28 +100,56 @@ export default function HomeScreen() {
           />
         </View>
 
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            marginBottom: 24,
-          }}
-        >
-          <Text style={{ fontSize: 24, fontWeight: "heavy", flex: 1 }}>
-            {format(selectedDate, "MMM do, yyyy")}
-          </Text>
-          <Pressable
-            hitSlop={20}
-            onPress={() => {
-              setShowDayTagManager(true);
+        <View style={{ marginBottom: 24 }}>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              marginBottom: 8,
             }}
           >
-            <Ionicons
-              name="pricetags-outline"
-              size={24}
-              color={theme.colors.primary}
-            />
-          </Pressable>
+            <Text style={{ fontSize: 24, fontWeight: "heavy", flex: 1 }}>
+              {format(selectedDate, "MMM do, yyyy")}
+            </Text>
+            <Pressable
+              hitSlop={20}
+              onPress={() => {
+                setShowDayTagManager(true);
+              }}
+            >
+              <Ionicons
+                name="pricetags-outline"
+                size={24}
+                color={theme.colors.primary}
+              />
+            </Pressable>
+          </View>
+          {dayTags.data.length > 0 && (
+            <View
+              style={{
+                flexDirection: "row",
+                flexWrap: "wrap",
+                gap: 8,
+                marginBottom: 24,
+              }}
+            >
+              {dayTags.data.map((tag) => (
+                <View
+                  key={tag.id}
+                  style={{
+                    backgroundColor: theme.colors.primary + "22",
+                    paddingVertical: 4,
+                    paddingHorizontal: 8,
+                    borderRadius: 12,
+                  }}
+                >
+                  <Text style={{ color: theme.colors.primary }}>
+                    {tag.displayName}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          )}
         </View>
 
         {morningEntries.length > 0 && (
