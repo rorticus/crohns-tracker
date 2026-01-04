@@ -1,11 +1,13 @@
 import useTheme from "@/hooks/useTheme";
+import { forwardRef } from "react";
 import { TextInput, TextInputProps } from "react-native";
 
-export default function TextArea(props: TextInputProps) {
+const TextArea = forwardRef<TextInput, TextInputProps>((props, ref) => {
   const theme = useTheme();
 
   return (
     <TextInput
+      ref={ref}
       multiline
       numberOfLines={4}
       placeholderTextColor={theme.colors.inactive}
@@ -25,4 +27,8 @@ export default function TextArea(props: TextInputProps) {
       {...props}
     />
   );
-}
+});
+
+TextArea.displayName = "TextArea";
+
+export default TextArea;

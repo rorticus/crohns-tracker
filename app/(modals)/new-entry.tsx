@@ -12,8 +12,16 @@ import {
 } from "@/utils/dateUtils";
 import { FontAwesome5, Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
+import { useEffect, useRef } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { Pressable, ScrollView, View } from "react-native";
+import {
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  View,
+} from "react-native";
 
 const bristolScaleDescriptions: Record<number, string> = {
   1: "Separate hard lumps, like nuts (hard to pass)",
@@ -42,6 +50,7 @@ const urgencyLabels: Record<number, string> = {
 export default function NewEntry() {
   const theme = useTheme();
   const router = useRouter();
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const form = useForm({
     defaultValues: {
@@ -57,6 +66,14 @@ export default function NewEntry() {
   const type = form.watch("type");
   const bristolValue = form.watch("bristol");
   const urgencyValue = form.watch("urgency");
+
+  useEffect(() => {
+    const listener = Keyboard.addListener("keyboardDidShow", () => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    });
+
+    return () => listener.remove();
+  }, []);
 
   return (
     <Screen>
@@ -76,211 +93,222 @@ export default function NewEntry() {
           ),
         }}
       />
-      <ScrollView bounces={false} style={{ flex: 1 }}>
-        <View style={{ paddingHorizontal: 16 }}>
-          <View
-            style={{
-              flexDirection: "row",
-              marginBottom: 24,
-              gap: 8,
-            }}
-          >
+      <KeyboardAvoidingView
+        style={{ paddingHorizontal: 16, flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0} // adjust if you have a header
+      >
+        <ScrollView
+          ref={scrollViewRef}
+          bounces={false}
+          style={{ flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={{ paddingHorizontal: 16 }}>
+            <View
+              style={{
+                flexDirection: "row",
+                marginBottom: 24,
+                gap: 8,
+              }}
+            >
+              <Controller
+                name="date"
+                control={form.control}
+                render={({ field }) => (
+                  <DateInput
+                    fill
+                    value={field.value}
+                    onChange={field.onChange}
+                    title="Event Date"
+                  />
+                )}
+              />
+              <Controller
+                name="time"
+                control={form.control}
+                render={({ field }) => (
+                  <TimeInput
+                    fill
+                    value={field.value}
+                    onChange={field.onChange}
+                    title="Event Time"
+                  />
+                )}
+              />
+            </View>
             <Controller
-              name="date"
               control={form.control}
+              name="type"
               render={({ field }) => (
-                <DateInput
-                  fill
-                  value={field.value}
-                  onChange={field.onChange}
-                  title="Event Date"
-                />
+                <View
+                  style={{
+                    flexDirection: "row",
+                    marginBottom: 32,
+                    gap: 8,
+                  }}
+                >
+                  <Button
+                    fill
+                    title="Bowel Movement"
+                    leftIcon={({ color, size }) => (
+                      <FontAwesome5 name="toilet" size={size} color={color} />
+                    )}
+                    onPress={() => field.onChange("bowelMovement")}
+                    type={
+                      field.value === "bowelMovement" ? "selected" : "default"
+                    }
+                  />
+                  <Button
+                    fill
+                    title="Note"
+                    leftIcon={({ color, size }) => (
+                      <Ionicons name="calendar" size={size} color={color} />
+                    )}
+                    onPress={() => field.onChange("event")}
+                    type={field.value === "event" ? "selected" : "default"}
+                  />
+                </View>
               )}
             />
-            <Controller
-              name="time"
-              control={form.control}
-              render={({ field }) => (
-                <TimeInput
-                  fill
-                  value={field.value}
-                  onChange={field.onChange}
-                  title="Event Time"
-                />
+            <View style={{ marginBottom: 32 }}>
+              {type === "bowelMovement" && (
+                <>
+                  <View style={{ marginBottom: 24 }}>
+                    <View
+                      style={{
+                        marginBottom: 8,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 16,
+                          fontWeight: "600",
+                          marginBottom: 8,
+                        }}
+                      >
+                        Bristol Stool Scale
+                      </Text>
+                      <View
+                        style={{
+                          backgroundColor: `${theme.colors.bm}66`,
+                          paddingHorizontal: 8,
+                          paddingVertical: 4,
+                          borderRadius: 4,
+                        }}
+                      >
+                        <Text>Type {bristolValue}</Text>
+                      </View>
+                    </View>
+
+                    <Text
+                      style={{
+                        color: theme.colors.textSecondary,
+                        marginBottom: 28,
+                      }}
+                    >
+                      {bristolScaleDescriptions[bristolValue]}
+                    </Text>
+                    <Controller
+                      control={form.control}
+                      name="bristol"
+                      render={({ field }) => (
+                        <GradientSlider
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          minimumValue={1}
+                          maximumValue={7}
+                          minimumLabel="Type 1"
+                          maximumLabel="Type 7"
+                          gradientColors={theme.colors.bmSlider}
+                        />
+                      )}
+                    />
+                  </View>
+                  <View style={{ marginBottom: 24 }}>
+                    <View
+                      style={{
+                        marginBottom: 8,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 16,
+                          fontWeight: "600",
+                          marginBottom: 8,
+                        }}
+                      >
+                        Urgency Level
+                      </Text>
+                      <View
+                        style={{
+                          backgroundColor: `${theme.colors.urgency}66`,
+                          paddingHorizontal: 8,
+                          paddingVertical: 4,
+                          borderRadius: 4,
+                        }}
+                      >
+                        <Text>{urgencyLabels[urgencyValue]}</Text>
+                      </View>
+                    </View>
+
+                    <Text
+                      style={{
+                        color: theme.colors.textSecondary,
+                        marginBottom: 28,
+                      }}
+                    >
+                      {urgencyDescriptions[urgencyValue]}
+                    </Text>
+                    <Controller
+                      control={form.control}
+                      name="urgency"
+                      render={({ field }) => (
+                        <GradientSlider
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          minimumValue={1}
+                          maximumValue={4}
+                          minimumLabel={urgencyLabels[1]}
+                          maximumLabel={urgencyLabels[4]}
+                          gradientColors={theme.colors.urgencySlider}
+                        />
+                      )}
+                    />
+                  </View>
+                </>
               )}
-            />
-          </View>
-          <Controller
-            control={form.control}
-            name="type"
-            render={({ field }) => (
-              <View
-                style={{
-                  flexDirection: "row",
-                  marginBottom: 32,
-                  gap: 8,
-                }}
-              >
-                <Button
-                  fill
-                  title="Bowel Movement"
-                  leftIcon={({ color, size }) => (
-                    <FontAwesome5 name="toilet" size={size} color={color} />
+              <View>
+                <Controller
+                  name="notes"
+                  control={form.control}
+                  render={({ field }) => (
+                    <TextArea
+                      placeholder="Additional notes (optional)"
+                      value={field.value}
+                      onChangeText={field.onChange}
+                      numberOfLines={4}
+                    />
                   )}
-                  onPress={() => field.onChange("bowelMovement")}
-                  type={
-                    field.value === "bowelMovement" ? "selected" : "default"
-                  }
-                />
-                <Button
-                  fill
-                  title="Note"
-                  leftIcon={({ color, size }) => (
-                    <Ionicons name="calendar" size={size} color={color} />
-                  )}
-                  onPress={() => field.onChange("event")}
-                  type={field.value === "event" ? "selected" : "default"}
                 />
               </View>
-            )}
-          />
-          <View style={{ marginBottom: 32 }}>
-            {type === "bowelMovement" && (
-              <>
-                <View style={{ marginBottom: 24 }}>
-                  <View
-                    style={{
-                      marginBottom: 8,
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontSize: 16,
-                        fontWeight: "600",
-                        marginBottom: 8,
-                      }}
-                    >
-                      Bristol Stool Scale
-                    </Text>
-                    <View
-                      style={{
-                        backgroundColor: `${theme.colors.bm}66`,
-                        paddingHorizontal: 8,
-                        paddingVertical: 4,
-                        borderRadius: 4,
-                      }}
-                    >
-                      <Text>Type {bristolValue}</Text>
-                    </View>
-                  </View>
-
-                  <Text
-                    style={{
-                      color: theme.colors.textSecondary,
-                      marginBottom: 28,
-                    }}
-                  >
-                    {bristolScaleDescriptions[bristolValue]}
-                  </Text>
-                  <Controller
-                    control={form.control}
-                    name="bristol"
-                    render={({ field }) => (
-                      <GradientSlider
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        minimumValue={1}
-                        maximumValue={7}
-                        minimumLabel="Type 1"
-                        maximumLabel="Type 7"
-                        gradientColors={theme.colors.bmSlider}
-                      />
-                    )}
-                  />
-                </View>
-                <View style={{ marginBottom: 24 }}>
-                  <View
-                    style={{
-                      marginBottom: 8,
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontSize: 16,
-                        fontWeight: "600",
-                        marginBottom: 8,
-                      }}
-                    >
-                      Urgency Level
-                    </Text>
-                    <View
-                      style={{
-                        backgroundColor: `${theme.colors.urgency}66`,
-                        paddingHorizontal: 8,
-                        paddingVertical: 4,
-                        borderRadius: 4,
-                      }}
-                    >
-                      <Text>{urgencyLabels[urgencyValue]}</Text>
-                    </View>
-                  </View>
-
-                  <Text
-                    style={{
-                      color: theme.colors.textSecondary,
-                      marginBottom: 28,
-                    }}
-                  >
-                    {urgencyDescriptions[urgencyValue]}
-                  </Text>
-                  <Controller
-                    control={form.control}
-                    name="urgency"
-                    render={({ field }) => (
-                      <GradientSlider
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        minimumValue={1}
-                        maximumValue={4}
-                        minimumLabel={urgencyLabels[1]}
-                        maximumLabel={urgencyLabels[4]}
-                        gradientColors={theme.colors.urgencySlider}
-                      />
-                    )}
-                  />
-                </View>
-                <View>
-                  <Controller
-                    name="notes"
-                    control={form.control}
-                    render={({ field }) => (
-                      <TextArea
-                        placeholder="Additional notes (optional)"
-                        value={field.value}
-                        onChangeText={field.onChange}
-                        numberOfLines={4}
-                      />
-                    )}
-                  />
-                </View>
-              </>
-            )}
+            </View>
+            <Button
+              title="Save Entry"
+              rightIcon={({ color, size }) => (
+                <Ionicons name="arrow-forward" color={color} size={size} />
+              )}
+              type="primary"
+            />
           </View>
-          <Button
-            title="Save Entry"
-            rightIcon={({ color, size }) => (
-              <Ionicons name="arrow-forward" color={color} size={size} />
-            )}
-            type="primary"
-          />
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </Screen>
   );
 }
