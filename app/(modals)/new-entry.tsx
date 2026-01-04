@@ -6,6 +6,8 @@ import Text from "@/components/text";
 import TextArea from "@/components/textarea";
 import TimeInput from "@/components/timeInput";
 import useTheme from "@/hooks/useTheme";
+import { createBowelMovement, createNote } from "@/services/entryService";
+import { BristolScale, NoteCategory, UrgencyLevel } from "@/types/entry";
 import {
   formatDateForDatabase,
   formatTimeForDatabase,
@@ -47,12 +49,22 @@ const urgencyLabels: Record<number, string> = {
   4: "Extreme",
 };
 
+type FormData = {
+  type: "bowelMovement" | "event";
+  date: string;
+  time: string;
+  bristol: BristolScale;
+  urgency: UrgencyLevel;
+  notes: string;
+  category: NoteCategory;
+};
+
 export default function NewEntry() {
   const theme = useTheme();
   const router = useRouter();
   const scrollViewRef = useRef<ScrollView>(null);
 
-  const form = useForm({
+  const form = useForm<FormData>({
     defaultValues: {
       type: "bowelMovement",
       date: formatDateForDatabase(new Date()),
@@ -75,6 +87,33 @@ export default function NewEntry() {
 
     return () => listener.remove();
   }, []);
+
+  async function onSave(values: FormData) {
+    console.log(values);
+
+    try {
+      if (values.type === "bowelMovement") {
+        await createBowelMovement({
+          date: values.date,
+          time: values.time,
+          consistency: values.bristol,
+          urgency: values.urgency,
+          notes: values.notes,
+        });
+      } else {
+        await createNote({
+          date: values.date,
+          time: values.time,
+          category: values.category,
+          content: values.notes,
+        });
+      }
+
+      router.back();
+    } catch (error) {
+      console.error("Error saving entry:", error);
+    }
+  }
 
   return (
     <Screen>
@@ -400,6 +439,7 @@ export default function NewEntry() {
                 <Ionicons name="arrow-forward" color={color} size={size} />
               )}
               type="primary"
+              onPress={form.handleSubmit(onSave)}
             />
           </View>
         </ScrollView>

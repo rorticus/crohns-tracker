@@ -110,10 +110,7 @@ export default function TimeInput({
                 } else if (suffix === "AM" && hour24 === 12) {
                   hour24 = 0;
                 }
-                const newTime = `${String(hour24).padStart(
-                  2,
-                  "0"
-                )}:${minute}:00`;
+                const newTime = `${String(hour24).padStart(2, "0")}:${minute}`;
                 onChange(newTime);
                 setShowTimePicker(false);
               }}
