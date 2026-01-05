@@ -57,9 +57,10 @@ export type EntryFormData = {
 
 type EntryFormProps = {
   onSave: (data: EntryFormData) => Promise<void>;
+  defaultValues?: Partial<EntryFormData>;
 };
 
-export default function EntryForm({ onSave }: EntryFormProps) {
+export default function EntryForm({ onSave, defaultValues }: EntryFormProps) {
   const theme = useTheme();
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -72,6 +73,7 @@ export default function EntryForm({ onSave }: EntryFormProps) {
       urgency: 2,
       notes: "",
       category: "medication",
+      ...defaultValues,
     },
   });
 

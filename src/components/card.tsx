@@ -1,20 +1,22 @@
 import useTheme from "@/hooks/useTheme";
 import { ReactNode } from "react";
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
 
 export default function Card({
   children,
   leftIcon,
   rightIcon,
+  onPress,
 }: {
   leftIcon?: ReactNode;
   rightIcon?: ReactNode;
   children: ReactNode;
+  onPress?: () => void;
 }) {
   const theme = useTheme();
 
   return (
-    <View
+    <Pressable
       style={{
         backgroundColor: theme.colors.card,
         padding: 16,
@@ -28,10 +30,11 @@ export default function Card({
         gap: 16,
         alignItems: "center",
       }}
+      onPress={onPress}
     >
       {leftIcon}
       <View style={{ flex: 1 }}>{children}</View>
       {rightIcon}
-    </View>
+    </Pressable>
   );
 }

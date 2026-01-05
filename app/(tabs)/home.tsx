@@ -15,6 +15,7 @@ import {
 } from "@/utils/dateUtils";
 import { FontAwesome5, Ionicons } from "@expo/vector-icons";
 import { format } from "date-fns";
+import { useRouter } from "expo-router";
 import { ReactNode, useMemo, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 
@@ -184,11 +185,13 @@ function EntryCard({
   entry: ReturnType<typeof useEvents>["data"][0];
 }) {
   const theme = useTheme();
+  const router = useRouter();
 
   switch (entry.entry.type) {
     case "bowel_movement":
       return (
         <Card
+          onPress={() => router.push(`/edit-entry?id=${entry.entry.id}`)}
           leftIcon={
             <CircleIcon
               icon={({ color, size }) => (
@@ -271,6 +274,7 @@ function EntryCard({
 
       return (
         <Card
+          onPress={() => router.push(`/edit-entry?id=${entry.entry.id}`)}
           leftIcon={<CircleIcon icon={icon} color={color} />}
           rightIcon={
             <View
