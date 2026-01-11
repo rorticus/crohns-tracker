@@ -1,12 +1,17 @@
+import Button from "@/components/button";
 import EntryForm, { EntryFormData } from "@/components/entryForm";
 import Screen from "@/components/screen";
 import Text from "@/components/text";
 import useEntryById from "@/hooks/useEntryById";
 import useTheme from "@/hooks/useTheme";
-import { updateBowelMovement, updateNote } from "@/services/entryService";
+import {
+  deleteEntry,
+  updateBowelMovement,
+  updateNote,
+} from "@/services/entryService";
 import { BristolScale, UrgencyLevel } from "@/types/entry";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { Pressable } from "react-native";
+import { Alert, Pressable } from "react-native";
 
 export default function EditEntry() {
   const theme = useTheme();
@@ -40,6 +45,23 @@ export default function EditEntry() {
     } catch (error) {
       console.error("Error saving entry:", error);
     }
+  }
+
+  async function onDeleteEntry() {
+    Alert.alert("Delete Entry", "Are you sure you want to delete this entry?", [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          await deleteEntry(entryIdNumber);
+          router.back();
+        },
+      },
+    ]);
   }
 
   return (
@@ -78,6 +100,9 @@ export default function EditEntry() {
             category: entry.data[0].note?.category ?? "medication",
             notes: entry.data[0].note?.content ?? "",
           }}
+          bottomButtons={
+            <Button title="Delete Entry" onPress={onDeleteEntry} />
+          }
         />
       )}
     </Screen>

@@ -58,9 +58,14 @@ export type EntryFormData = {
 type EntryFormProps = {
   onSave: (data: EntryFormData) => Promise<void>;
   defaultValues?: Partial<EntryFormData>;
+  bottomButtons?: React.ReactNode;
 };
 
-export default function EntryForm({ onSave, defaultValues }: EntryFormProps) {
+export default function EntryForm({
+  onSave,
+  defaultValues,
+  bottomButtons,
+}: EntryFormProps) {
   const theme = useTheme();
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -382,14 +387,17 @@ export default function EntryForm({ onSave, defaultValues }: EntryFormProps) {
               />
             </View>
           </View>
-          <Button
-            title="Save Entry"
-            rightIcon={({ color, size }) => (
-              <Ionicons name="arrow-forward" color={color} size={size} />
-            )}
-            type="primary"
-            onPress={form.handleSubmit(onSave)}
-          />
+          <View style={{ gap: 12 }}>
+            <Button
+              title="Save Entry"
+              rightIcon={({ color, size }) => (
+                <Ionicons name="arrow-forward" color={color} size={size} />
+              )}
+              type="primary"
+              onPress={form.handleSubmit(onSave)}
+            />
+            {bottomButtons}
+          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
